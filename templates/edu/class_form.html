@@ -1,0 +1,79 @@
+{% extends "edu/base_edu.html" %}
+{% block title %}{{ 'Chỉnh sửa' if cls else 'Thêm' }} lớp học{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="bi bi-calendar3 me-2"></i>{{ 'Chỉnh sửa lớp' if cls else 'Thêm lớp học mới' }}</h1>
+</div>
+<div class="bg-white rounded-3 shadow-sm p-4" style="max-width:680px">
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Khóa học *</label>
+        <select name="course_id" class="form-select" required>
+          {% for c in courses_list %}
+          <option value="{{ c.CourseID }}" {{ 'selected' if cls and cls.CourseID==c.CourseID }}>
+            {{ c.CourseName }} ({{ "{:,.0f}".format(c.Fee or 0) }}₫)
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Tên lớp *</label>
+        <input type="text" name="classname" class="form-control"
+               value="{{ cls.ClassName if cls else '' }}" required
+               placeholder="VD: Python K01 - Tối T2T4T6">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Giảng viên</label>
+        <select name="teacher_id" class="form-select">
+          <option value="">— Chưa phân công —</option>
+          {% for s in staff_list %}
+          <option value="{{ s.StaffID }}" {{ 'selected' if cls and cls.TeacherID==s.StaffID }}>
+            {{ s.FullName }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Phòng học</label>
+        <input type="text" name="room" class="form-control"
+               value="{{ cls.Room if cls else '' }}" placeholder="VD: Phòng 101">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Ngày khai giảng</label>
+        <input type="date" name="start_date" class="form-control"
+               value="{{ cls.StartDate.strftime('%Y-%m-%d') if cls and cls.StartDate else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Ngày kết thúc</label>
+        <input type="date" name="end_date" class="form-control"
+               value="{{ cls.EndDate.strftime('%Y-%m-%d') if cls and cls.EndDate else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Sĩ số tối đa</label>
+        <input type="number" name="max_students" class="form-control" min="1"
+               value="{{ cls.MaxStudents if cls else 20 }}">
+      </div>
+      <div class="col-md-8">
+        <label class="form-label fw-semibold">Lịch học</label>
+        <input type="text" name="schedule" class="form-control"
+               value="{{ cls.Schedule if cls else '' }}" placeholder="VD: T2T4T6 18:00-20:00">
+      </div>
+      {% if cls %}
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Trạng thái</label>
+        <select name="status" class="form-select">
+          {% for s in ['Upcoming','Ongoing','Completed','Cancelled'] %}
+          <option value="{{ s }}" {{ 'selected' if cls.Status==s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-success"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+      <a href="{{ url_for('edu_classes') }}" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

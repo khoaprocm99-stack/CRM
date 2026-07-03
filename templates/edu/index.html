@@ -1,0 +1,148 @@
+{% extends "edu/base_edu.html" %}
+{% block title %}Dashboard Giáo dục{% endblock %}
+{% block content %}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h1><i class="bi bi-mortarboard me-2"></i>Dashboard — CRM Giáo dục</h1>
+    <small class="text-muted">Trung tâm Đào tạo NLU · Tổng quan hoạt động</small>
+  </div>
+</div>
+
+<!-- KPI -->
+<div class="row g-3 mb-4">
+  <div class="col-md-2">
+    <div class="stat-card" style="border-color:#27ae60">
+      <div class="value">{{ stats.students }}</div>
+      <div class="label"><i class="bi bi-people"></i> Học viên</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="stat-card" style="border-color:#2e86c1">
+      <div class="value">{{ stats.enrollments }}</div>
+      <div class="label"><i class="bi bi-journal-check"></i> Đang học</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="stat-card" style="border-color:#8e44ad">
+      <div class="value">{{ stats.classes }}</div>
+      <div class="label"><i class="bi bi-calendar3"></i> Lớp đang mở</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="border-color:#f39c12">
+      <div class="value" style="font-size:1.2rem">
+        {{ "{:,.0f}".format(stats.revenue) }} ₫
+      </div>
+      <div class="label"><i class="bi bi-cash-coin"></i> Thu học phí tháng này</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="border-color:#e74c3c">
+      <div class="value" style="font-size:1.2rem">
+        {{ "{:,.0f}".format(stats.pending_fee) }} ₫
+      </div>
+      <div class="label"><i class="bi bi-exclamation-triangle"></i> Học phí còn nợ</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Lớp đang mở -->
+  <div class="col-md-6">
+    <div class="table-card">
+      <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <strong><i class="bi bi-calendar3 me-1"></i> Lớp học đang mở</strong>
+        <a href="{{ url_for('edu_home') }}" class="btn btn-sm btn-outline-success">Xem tất cả</a>
+      </div>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Lớp</th><th>Lịch</th><th>Phòng</th><th class="text-center">Sĩ số</th><th>Trạng thái</th></tr></thead>
+        <tbody>
+          {% for cl in ongoing_classes %}
+          <tr>
+            <td>
+              <div class="fw-semibold" style="font-size:.85rem">{{ cl.ClassName }}</div>
+              <div class="text-muted" style="font-size:.75rem">{{ cl.CourseName }}</div>
+            </td>
+            <td style="font-size:.8rem">{{ cl.Schedule }}</td>
+            <td style="font-size:.8rem">{{ cl.Room }}</td>
+            <td class="text-center">
+              <small>{{ cl.CurrentStudents }}/{{ cl.MaxStudents }}</small>
+              <div class="progress" style="height:4px">
+                <div class="progress-bar bg-{{ 'danger' if cl.CurrentStudents>=cl.MaxStudents else 'success' }}"
+                     style="width:{{ (cl.CurrentStudents/cl.MaxStudents*100)|int }}%"></div>
+              </div>
+            </td>
+            <td>
+              <span class="badge bg-{{ 'success' if cl.Status=='Ongoing' else 'info' }} text-{{ 'white' if cl.Status=='Ongoing' else 'dark' }}"
+                    style="font-size:.7rem">{{ cl.Status }}</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Học viên mới -->
+  <div class="col-md-6">
+    <div class="table-card">
+      <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <strong><i class="bi bi-person-plus me-1"></i> Học viên mới nhất</strong>
+        <a href="{{ url_for('edu_home') }}" class="btn btn-sm btn-outline-success">Xem tất cả</a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for s in recent_students %}
+        {% set sc = {'Prospect':'secondary','Enrolled':'info','Studying':'success','Graduated':'primary','Dropped':'danger'} %}
+        <a href="{{ url_for('edu_home') }}"
+           class="list-group-item list-group-item-action px-3 py-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold" style="font-size:.88rem">{{ s.FullName }}</div>
+              <div class="text-muted" style="font-size:.75rem">
+                {{ s.Phone }} · {{ s.Source }}
+              </div>
+            </div>
+            <span class="badge bg-{{ sc.get(s.Status,'secondary') }}" style="font-size:.7rem">
+              {{ s.Status }}
+            </span>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Tư vấn gần đây -->
+  <div class="col-12">
+    <div class="table-card">
+      <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <strong><i class="bi bi-chat-dots me-1"></i> Tư vấn gần đây</strong>
+        <a href="{{ url_for('edu_home') }}" class="btn btn-sm btn-outline-success">Xem tất cả</a>
+      </div>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Học viên</th><th>Hình thức</th><th>Chủ đề</th><th>Kết quả</th><th>Nhân viên</th><th>Thời gian</th></tr></thead>
+        <tbody>
+          {% set rc = {'Đã đăng ký':'success','Quan tâm':'info','Cần suy nghĩ':'warning','Không quan tâm':'danger'} %}
+          {% for c in recent_consults %}
+          <tr>
+            <td class="fw-semibold">{{ c.student }}</td>
+            <td><span class="badge bg-secondary" style="font-size:.72rem">{{ c.Type }}</span></td>
+            <td style="font-size:.82rem">{{ c.Subject }}</td>
+            <td>
+              <span class="badge bg-{{ rc.get(c.Result,'secondary') }}
+                    {% if c.Result in ['Quan tâm','Cần suy nghĩ'] %} text-dark{% endif %}"
+                    style="font-size:.72rem">{{ c.Result }}</span>
+            </td>
+            <td style="font-size:.82rem">{{ c.staff }}</td>
+            <td style="font-size:.78rem">
+              {{ c.ConsultedAt.strftime('%d/%m/%Y %H:%M') if c.ConsultedAt }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

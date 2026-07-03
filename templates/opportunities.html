@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}Cơ hội bán hàng{% endblock %}
+{% block content %}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h1><i class="bi bi-graph-up-arrow me-2"></i>Cơ hội bán hàng</h1>
+    <small class="text-muted">Tổng {{ paged.total }} cơ hội</small>
+  </div>
+  {% if session.get('role') == 'admin' %}
+  <a href="{{ url_for('add_opportunity') }}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i> Thêm cơ hội
+  </a>
+  {% endif %}
+</div>
+
+<!-- Tìm kiếm + lọc -->
+<div class="bg-white rounded-3 shadow-sm p-3 mb-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label small fw-semibold mb-1">🔍 Tìm kiếm</label>
+      <input type="text" name="q" class="form-control form-control-sm"
+             placeholder="Tên cơ hội, khách hàng, công ty..."
+             value="{{ q }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold mb-1">Giai đoạn</label>
+      <select name="stage" class="form-select form-select-sm">
+        <option value="">Tất cả</option>
+        {% for s in stages %}
+        <option value="{{ s }}" {{ 'selected' if current_stage==s }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold mb-1">Nhân viên</label>
+      <select name="employee" class="form-select form-select-sm">
+        <option value="">Tất cả</option>
+        {% for e in employees_list %}
+        <option value="{{ e.EmployeeID }}" {{ 'selected' if employee==e.EmployeeID|string }}>
+          {{ e.FullName }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+      <button type="submit" class="btn btn-primary btn-sm flex-fill">
+        <i class="bi bi-search me-1"></i>Tìm
+      </button>
+      <a href="{{ url_for('opportunities') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-x-lg"></i>
+      </a>
+    </div>
+  </form>
+</div>
+
+<div class="table-card">
+  <table class="table table-hover align-middle">
+    <thead><tr>
+      <th>Tiêu đề</th><th>Khách hàng</th><th>Sản phẩm</th>
+      <th>Giai đoạn</th><th class="text-end">Giá trị</th>
+      <th class="text-center">Xác suất</th><th>Nhân viên</th>
+      <th>Dự kiến đóng</th><th></th>
+    </tr></thead>
+    <tbody>
+      {% set sc = {'Lead':'secondary','Qualified':'info','Proposal':'warning',
+                   'Negotiation':'primary','Closed Won':'success','Closed Lost':'danger'} %}
+      {% for o in opportunities %}
+      <tr>
+        <td class="fw-semibold">{{ o.Title }}</td>
+        <td>
+          <a href="{{ url_for('customer_detail', cid=o.CustomerID) }}" class="text-decoration-none">
+            {{ o.customer }}
+          </a>
+          <div class="text-muted" style="font-size:.78rem">{{ o.Company }}</div>
+        </td>
+        <td>{{ o.ProductName or '—' }}</td>
+        <td>
+          <span class="badge bg-{{ sc.get(o.Stage,'secondary') }}
+                {% if o.Stage in ['Qualified','Proposal'] %} text-dark{% endif %}">
+            {{ o.Stage }}
+          </span>
+        </td>
+        <td class="text-end">{{ "{:,.0f}".format(o.Value or 0) }} ₫</td>
+        <td class="text-center">
+          <div class="progress" style="height:6px;width:60px;display:inline-block;vertical-align:middle">
+            <div class="progress-bar bg-{{ 'success' if o.Probability>=70 else 'warning' if o.Probability>=40 else 'danger' }}"
+                 style="width:{{ o.Probability }}%"></div>
+          </div>
+          <small class="ms-1">{{ o.Probability }}%</small>
+        </td>
+        <td>{{ o.employee }}</td>
+        <td style="font-size:.82rem">
+          {{ o.ExpectedClose.strftime('%d/%m/%Y') if o.ExpectedClose else '—' }}
+        </td>
+        <td>
+          {% if session.get('role') == 'admin' %}
+          <a href="{{ url_for('edit_opportunity', oid=o.OpportunityID) }}"
+             class="btn btn-sm btn-outline-secondary me-1"><i class="bi bi-pencil"></i></a>
+          <form action="{{ url_for('delete_opportunity', oid=o.OpportunityID) }}" method="post"
+                class="d-inline" onsubmit="return confirm('Xóa cơ hội này?')">
+            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" class="text-center text-muted py-4">
+        {{ 'Không tìm thấy kết quả' if q or current_stage or employee else 'Chưa có cơ hội nào' }}
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {{ render_pagination(paged, 'opportunities', q=q, stage=current_stage, employee=employee) }}
+</div>
+{% endblock %}

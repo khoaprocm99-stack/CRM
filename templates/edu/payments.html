@@ -1,0 +1,76 @@
+{% extends "edu/base_edu.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}Học phí{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h1><i class="bi bi-cash-coin me-2"></i>Học phí</h1>
+    <small class="text-muted">Tổng {{ paged.total }} giao dịch</small>
+  </div>
+  {% if session.get('role') in ['admin','employee'] %}
+  <a href="{{ url_for('edu_add_payment') }}" class="btn btn-success">
+    <i class="bi bi-plus-lg me-1"></i> Thu học phí
+  </a>
+  {% endif %}
+</div>
+
+<!-- Tổng doanh thu -->
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="stat-card" style="border-color:#27ae60">
+      <div class="value" style="font-size:1.3rem">{{ "{:,.0f}".format(total) }} ₫</div>
+      <div class="label"><i class="bi bi-cash-stack"></i> Tổng đã thu</div>
+    </div>
+  </div>
+</div>
+
+<div class="bg-white rounded-3 shadow-sm p-3 mb-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-6">
+      <input type="text" name="q" class="form-control form-control-sm"
+             placeholder="🔍 Tên học viên, lớp học..." value="{{ q }}">
+    </div>
+    <div class="col-md-6 d-flex gap-2">
+      <button type="submit" class="btn btn-success btn-sm flex-fill">
+        <i class="bi bi-search me-1"></i>Tìm
+      </button>
+      <a href="{{ url_for('edu_payments') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-x-lg"></i>
+      </a>
+    </div>
+  </form>
+</div>
+
+<div class="table-card">
+  <table class="table table-hover align-middle">
+    <thead><tr>
+      <th>Ngày</th><th>Học viên</th><th>Lớp học</th>
+      <th class="text-end">Số tiền</th><th>Hình thức</th>
+      <th>Ghi chú</th><th>Nhân viên</th>
+    </tr></thead>
+    <tbody>
+      {% for p in payments %}
+      <tr>
+        <td style="font-size:.82rem;white-space:nowrap">
+          {{ p.PaymentDate.strftime('%d/%m/%Y') if p.PaymentDate else '—' }}
+        </td>
+        <td class="fw-semibold">{{ p.student }}</td>
+        <td>
+          <div>{{ p.ClassName }}</div>
+          <div class="text-muted" style="font-size:.75rem">{{ p.CourseName }}</div>
+        </td>
+        <td class="text-end fw-bold text-success">
+          {{ "{:,.0f}".format(p.Amount) }} ₫
+        </td>
+        <td><span class="badge bg-secondary">{{ p.Method }}</span></td>
+        <td style="font-size:.82rem">{{ p.Note or '—' }}</td>
+        <td style="font-size:.82rem">{{ p.staff or '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center text-muted py-4">Chưa có giao dịch nào</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {{ render_pagination(paged, 'edu_payments', q=q) }}
+</div>
+{% endblock %}

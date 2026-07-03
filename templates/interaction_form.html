@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Chỉnh sửa' if inter else 'Ghi nhận' }} tương tác{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1><i class="bi bi-chat-dots me-2"></i>
+    {{ 'Chỉnh sửa tương tác' if inter else 'Ghi nhận tương tác mới' }}
+  </h1>
+</div>
+
+<div class="bg-white rounded-3 shadow-sm p-4" style="max-width:600px">
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Khách hàng *</label>
+        <select name="customer_id" class="form-select" required>
+          {% for c in customers %}
+          <option value="{{ c.CustomerID }}"
+            {{ 'selected' if inter and inter.CustomerID==c.CustomerID }}>
+            {{ c.FullName }} ({{ c.Company }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Nhân viên *</label>
+        <select name="employee_id" class="form-select" required>
+          {% for e in employees %}
+          <option value="{{ e.EmployeeID }}"
+            {{ 'selected' if inter and inter.EmployeeID==e.EmployeeID }}>
+            {{ e.FullName }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Loại tương tác</label>
+        <select name="type" class="form-select">
+          {% for t in ['Email','Call','Meeting','Demo','Chat'] %}
+          <option value="{{ t }}" {{ 'selected' if inter and inter.Type==t }}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Chủ đề *</label>
+        <input type="text" name="subject" class="form-control"
+               value="{{ inter.Subject if inter else '' }}" required>
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold">Ghi chú</label>
+        <textarea name="notes" class="form-control" rows="3">
+          {{- inter.Notes if inter else '' -}}
+        </textarea>
+      </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-lg me-1"></i>{{ 'Cập nhật' if inter else 'Lưu' }}
+      </button>
+      <a href="{{ url_for('interactions') }}" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

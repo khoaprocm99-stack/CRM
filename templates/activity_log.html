@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}Nhật ký hoạt động{% endblock %}
+{% block content %}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h1><i class="bi bi-journal-text me-2"></i>Nhật ký hoạt động</h1>
+    <small class="text-muted">Tổng {{ paged.total }} bản ghi</small>
+  </div>
+</div>
+
+<!-- Tìm kiếm + lọc -->
+<div class="bg-white rounded-3 shadow-sm p-3 mb-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label small fw-semibold mb-1">🔍 Tìm kiếm</label>
+      <input type="text" name="q" class="form-control form-control-sm"
+             placeholder="Tên user, mô tả..." value="{{ q }}">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small fw-semibold mb-1">Hành động</label>
+      <select name="action" class="form-select form-select-sm">
+        <option value="">Tất cả</option>
+        {% for a in actions %}
+        <option value="{{ a }}" {{ 'selected' if action==a }}>{{ a }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small fw-semibold mb-1">Module</label>
+      <select name="module" class="form-select form-select-sm">
+        <option value="">Tất cả</option>
+        {% for m in modules %}
+        <option value="{{ m }}" {{ 'selected' if module==m }}>{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 d-flex gap-2 align-items-end">
+      <button type="submit" class="btn btn-primary btn-sm flex-fill">
+        <i class="bi bi-search me-1"></i>Tìm
+      </button>
+      <a href="{{ url_for('activity_log') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-x-lg"></i> Xóa lọc
+      </a>
+    </div>
+  </form>
+</div>
+
+<div class="table-card">
+  <table class="table table-hover align-middle">
+    <thead><tr>
+      <th>Thời gian</th><th>Người dùng</th>
+      <th>Hành động</th><th>Module</th>
+      <th>Mô tả</th><th>IP</th>
+    </tr></thead>
+    <tbody>
+      {% set ac = {
+        'LOGIN':'success','LOGOUT':'secondary',
+        'CREATE':'primary','UPDATE':'warning','DELETE':'danger'
+      } %}
+      {% set mc = {
+        'Auth':'secondary','Customer':'primary','Opportunity':'success',
+        'Interaction':'info','Ticket':'warning','User':'danger'
+      } %}
+      {% for log in logs %}
+      <tr>
+        <td style="font-size:.8rem;white-space:nowrap">
+          {{ log.CreatedAt.strftime('%d/%m/%Y %H:%M:%S') if log.CreatedAt }}
+        </td>
+        <td>
+          <div class="fw-semibold" style="font-size:.85rem">{{ log.FullName }}</div>
+          <div class="text-muted" style="font-size:.75rem">@{{ log.Username }}</div>
+        </td>
+        <td>
+          <span class="badge bg-{{ ac.get(log.Action,'secondary') }}
+                {% if log.Action=='UPDATE' %} text-dark{% endif %}">
+            {{ log.Action }}
+          </span>
+        </td>
+        <td>
+          <span class="badge bg-{{ mc.get(log.Module,'secondary') }}
+                {% if log.Module in ['Interaction'] %} text-dark{% endif %}"
+                style="font-size:.75rem">
+            {{ log.Module }}
+          </span>
+        </td>
+        <td style="font-size:.82rem">{{ log.Description }}</td>
+        <td style="font-size:.75rem;color:#999">{{ log.IPAddress }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="text-center text-muted py-4">
+        {{ 'Không tìm thấy kết quả' if q or action or module else 'Chưa có log nào' }}
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {{ render_pagination(paged, 'activity_log', q=q, action=action, module=module) }}
+</div>
+{% endblock %}

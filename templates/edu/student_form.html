@@ -1,0 +1,93 @@
+{% extends "edu/base_edu.html" %}
+{% block title %}{{ 'Chỉnh sửa' if student else 'Thêm' }} học viên{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1><i class="bi bi-person-plus me-2"></i>
+    {{ 'Chỉnh sửa học viên' if student else 'Thêm học viên mới' }}
+  </h1>
+</div>
+
+<div class="bg-white rounded-3 shadow-sm p-4" style="max-width:680px">
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Họ và tên *</label>
+        <input type="text" name="fullname" class="form-control"
+               value="{{ student.FullName if student else '' }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Email</label>
+        <input type="email" name="email" class="form-control"
+               value="{{ student.Email if student else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Số điện thoại</label>
+        <input type="text" name="phone" class="form-control"
+               value="{{ student.Phone if student else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Ngày sinh</label>
+        <input type="date" name="dob" class="form-control"
+               value="{{ student.DOB.strftime('%Y-%m-%d') if student and student.DOB else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Giới tính</label>
+        <select name="gender" class="form-select">
+          <option value="">— Chọn —</option>
+          {% for g in ['Nam','Nữ','Khác'] %}
+          <option value="{{ g }}" {{ 'selected' if student and student.Gender==g }}>{{ g }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold">Địa chỉ</label>
+        <input type="text" name="address" class="form-control"
+               value="{{ student.Address if student else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Nguồn biết đến</label>
+        <select name="source" class="form-select">
+          {% for s in ['Website','Facebook','Referral','Walk-in','Zalo','Khác'] %}
+          <option value="{{ s }}" {{ 'selected' if student and student.Source==s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Tư vấn viên phụ trách</label>
+        <select name="assigned_to" class="form-select">
+          <option value="">— Chưa phân công —</option>
+          {% for e in staff_list %}
+          <option value="{{ e.StaffID }}"
+            {{ 'selected' if student and student.AssignedTo==e.StaffID }}>
+            {{ e.FullName }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if student %}
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Trạng thái</label>
+        <select name="status" class="form-select">
+          {% for s in ['Prospect','Enrolled','Studying','Graduated','Dropped'] %}
+          <option value="{{ s }}" {{ 'selected' if student.Status==s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <div class="col-12">
+        <label class="form-label fw-semibold">Ghi chú</label>
+        <textarea name="notes" class="form-control" rows="2">
+          {{- student.Notes if student else '' -}}
+        </textarea>
+      </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-check-lg me-1"></i>Lưu
+      </button>
+      <a href="{{ url_for('edu_students') }}" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

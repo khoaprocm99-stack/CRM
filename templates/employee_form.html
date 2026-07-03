@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Chỉnh sửa' if emp else 'Thêm' }} nhân viên{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1><i class="bi bi-person-plus me-2"></i>
+    {{ 'Chỉnh sửa nhân viên' if emp else 'Thêm nhân viên mới' }}
+  </h1>
+</div>
+
+<div class="bg-white rounded-3 shadow-sm p-4" style="max-width:600px">
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Họ và tên *</label>
+        <input type="text" name="fullname" class="form-control"
+               value="{{ emp.FullName if emp else '' }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Email</label>
+        <input type="email" name="email" class="form-control"
+               value="{{ emp.Email if emp else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Điện thoại</label>
+        <input type="text" name="phone" class="form-control"
+               value="{{ emp.Phone if emp else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Phòng ban</label>
+        <select name="department" class="form-select">
+          {% for d in ['Sales','Support','Marketing','Management'] %}
+          <option value="{{ d }}"
+            {{ 'selected' if emp and emp.Department==d }}>{{ d }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Chức vụ</label>
+        <select name="role" class="form-select">
+          {% for r in ['Nhân viên','Trưởng nhóm','Quản lý'] %}
+          <option value="{{ r }}"
+            {{ 'selected' if emp and emp.Role==r }}>{{ r }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Ngày vào làm</label>
+        <input type="date" name="hiredate" class="form-control"
+               value="{{ emp.HireDate.strftime('%Y-%m-%d') if emp and emp.HireDate else '' }}">
+      </div>
+      {% if emp %}
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Trạng thái</label>
+        <select name="status" class="form-select">
+          {% for s in ['Active','Inactive'] %}
+          <option value="{{ s }}" {{ 'selected' if emp.Status==s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-lg me-1"></i>Lưu
+      </button>
+      <a href="{{ url_for('employees') }}" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

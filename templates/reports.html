@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% block title %}Báo cáo thống kê{% endblock %}
+{% block content %}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h1><i class="bi bi-bar-chart-line me-2"></i>Báo cáo & Thống kê</h1>
+    <small class="text-muted">Tổng quan hiệu suất hệ thống CRM</small>
+  </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-2">
+    <div class="stat-card" style="border-color:#2e86c1">
+      <div class="value">{{ kpi.total_customers }}</div>
+      <div class="label"><i class="bi bi-people"></i> Khách hàng</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="border-color:#27ae60">
+      <div class="value" style="font-size:1.3rem">
+        {{ "{:,.0f}".format(kpi.total_revenue) }} ₫
+      </div>
+      <div class="label"><i class="bi bi-cash-stack"></i> Doanh thu đã chốt</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="stat-card" style="border-color:#f39c12">
+      <div class="value">{{ kpi.win_rate }}%</div>
+      <div class="label"><i class="bi bi-trophy"></i> Tỷ lệ thắng</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="border-color:#8e44ad">
+      <div class="value" style="font-size:1.3rem">
+        {{ "{:,.0f}".format(kpi.avg_deal_value) }} ₫
+      </div>
+      <div class="label"><i class="bi bi-graph-up"></i> Giá trị deal TB</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="stat-card" style="border-color:#e74c3c">
+      <div class="value">{{ kpi.open_tickets }}</div>
+      <div class="label"><i class="bi bi-ticket"></i> Ticket đang mở</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Biểu đồ Pipeline -->
+  <div class="col-md-6">
+    <div class="bg-white rounded-3 shadow-sm p-4">
+      <h6 class="fw-bold mb-3"><i class="bi bi-funnel me-1"></i>Sales Pipeline — Số deal theo giai đoạn</h6>
+      <canvas id="pipelineChart" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- Biểu đồ phân khúc khách hàng -->
+  <div class="col-md-3">
+    <div class="bg-white rounded-3 shadow-sm p-4">
+      <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart me-1"></i>Phân khúc khách hàng</h6>
+      <canvas id="segmentChart" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- Nguồn khách hàng -->
+  <div class="col-md-3">
+    <div class="bg-white rounded-3 shadow-sm p-4">
+      <h6 class="fw-bold mb-3"><i class="bi bi-diagram-2 me-1"></i>Nguồn khách hàng</h6>
+      <canvas id="sourceChart" height="220"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Doanh thu theo tháng -->
+  <div class="col-md-8">
+    <div class="bg-white rounded-3 shadow-sm p-4">
+      <h6 class="fw-bold mb-3"><i class="bi bi-graph-up-arrow me-1"></i>Doanh thu theo tháng (Closed Won)</h6>
+      {% if revenue_monthly %}
+      <canvas id="revenueChart" height="160"></canvas>
+      {% else %}
+      <div class="text-center text-muted py-4">
+        <i class="bi bi-inbox" style="font-size:2rem;opacity:.3"></i>
+        <div class="mt-1">Chưa có deal Closed Won nào</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Ticket theo trạng thái & ưu tiên -->
+  <div class="col-md-4">
+    <div class="bg-white rounded-3 shadow-sm p-4">
+      <h6 class="fw-bold mb-3"><i class="bi bi-ticket me-1"></i>Ticket theo trạng thái</h6>
+      <canvas id="ticketStatusChart" height="160"></canvas>
+      <h6 class="fw-bold mb-2 mt-4"><i class="bi bi-exclamation-triangle me-1"></i>Theo ưu tiên</h6>
+      <canvas id="ticketPriorityChart" height="120"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Loại tương tác -->
+  <div class="col-md-4">
+    <div class="bg-white rounded-3 shadow-sm p-4">
+      <h6 class="fw-bold mb-3"><i class="bi bi-chat-dots me-1"></i>Tương tác theo loại</h6>
+      <canvas id="interactionChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Hiệu suất nhân viên -->
+  <div class="col-md-8">
+    <div class="bg-white rounded-3 shadow-sm p-4">
+      <h6 class="fw-bold mb-3"><i class="bi bi-person-badge me-1"></i>Hiệu suất nhân viên</h6>
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr style="background:#f8f9fa">
+            <th>Nhân viên</th><th>Phòng ban</th>
+            <th class="text-center">KH</th>
+            <th class="text-center">Deal</th>
+            <th class="text-center">Thắng</th>
+            <th class="text-end">Doanh thu</th>
+            <th class="text-center">Tương tác</th>
+            <th>Win Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in emp_perf %}
+          <tr>
+            <td class="fw-semibold">{{ e.FullName }}</td>
+            <td><span class="badge bg-secondary" style="font-size:.7rem">{{ e.Department }}</span></td>
+            <td class="text-center">{{ e.customers }}</td>
+            <td class="text-center">{{ e.total_opps }}</td>
+            <td class="text-center text-success fw-bold">{{ e.won }}</td>
+            <td class="text-end">{{ "{:,.0f}".format(e.revenue) }} ₫</td>
+            <td class="text-center">{{ e.interactions }}</td>
+            <td>
+              {% if e.total_opps > 0 %}
+              {% set wr = (e.won / e.total_opps * 100)|round(0)|int %}
+              <div class="progress" style="height:6px">
+                <div class="progress-bar bg-{{ 'success' if wr>=60 else 'warning' if wr>=30 else 'danger' }}"
+                     style="width:{{ wr }}%"></div>
+              </div>
+              <small>{{ wr }}%</small>
+              {% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+Chart.defaults.font.family = "'Segoe UI', sans-serif";
+Chart.defaults.font.size   = 12;
+
+const COLORS = {
+  blue:   '#2e86c1', green:  '#27ae60', orange: '#f39c12',
+  red:    '#e74c3c', purple: '#8e44ad', teal:   '#16a085',
+  gray:   '#95a5a6', navy:   '#1a5276'
+};
+
+// 1. Pipeline chart
+new Chart(document.getElementById('pipelineChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ pipeline | map(attribute='Stage') | list | tojson }},
+    datasets: [{
+      label: 'Số deal',
+      data:  {{ pipeline | map(attribute='count') | list | tojson }},
+      backgroundColor: ['#95a5a6','#0dcaf0','#ffc107','#2e86c1','#27ae60','#e74c3c'],
+    }]
+  },
+  options: { responsive:true, plugins:{legend:{display:false}},
+             scales:{ y:{ beginAtZero:true, ticks:{stepSize:1} } } }
+});
+
+// 2. Segment chart
+new Chart(document.getElementById('segmentChart'), {
+  type: 'doughnut',
+  data: {
+    labels: {{ segments | map(attribute='Segment') | list | tojson }},
+    datasets: [{ data: {{ segments | map(attribute='count') | list | tojson }},
+      backgroundColor: [COLORS.blue, COLORS.green, COLORS.orange] }]
+  },
+  options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
+});
+
+// 3. Source chart
+new Chart(document.getElementById('sourceChart'), {
+  type: 'doughnut',
+  data: {
+    labels: {{ sources | map(attribute='Source') | list | tojson }},
+    datasets: [{ data: {{ sources | map(attribute='count') | list | tojson }},
+      backgroundColor: [COLORS.teal, COLORS.purple, COLORS.orange, COLORS.navy, COLORS.gray] }]
+  },
+  options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
+});
+
+// 4. Revenue monthly
+{% if revenue_monthly %}
+new Chart(document.getElementById('revenueChart'), {
+  type: 'line',
+  data: {
+    labels: {{ revenue_monthly | map(attribute='month') | list | tojson }},
+    datasets: [{
+      label: 'Doanh thu (₫)',
+      data:  {{ revenue_monthly | map(attribute='revenue') | list | tojson }},
+      borderColor: COLORS.green, backgroundColor: 'rgba(39,174,96,.1)',
+      fill: true, tension: 0.4, pointRadius: 5
+    }]
+  },
+  options: { responsive:true,
+    plugins:{ legend:{ display:false } },
+    scales:{ y:{ beginAtZero:true,
+      ticks:{ callback: v => (v/1000000).toFixed(0)+'M' } } }
+  }
+});
+{% endif %}
+
+// 5. Ticket status
+new Chart(document.getElementById('ticketStatusChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ ticket_by_status | map(attribute='Status') | list | tojson }},
+    datasets: [{
+      data: {{ ticket_by_status | map(attribute='count') | list | tojson }},
+      backgroundColor: ['#e74c3c','#f39c12','#27ae60','#95a5a6']
+    }]
+  },
+  options: { indexAxis:'y', responsive:true,
+    plugins:{ legend:{ display:false } },
+    scales:{ x:{ beginAtZero:true, ticks:{stepSize:1} } }
+  }
+});
+
+// 6. Ticket priority
+new Chart(document.getElementById('ticketPriorityChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ ticket_by_priority | map(attribute='Priority') | list | tojson }},
+    datasets: [{
+      data: {{ ticket_by_priority | map(attribute='count') | list | tojson }},
+      backgroundColor: ['#e74c3c','#f39c12','#0dcaf0','#95a5a6']
+    }]
+  },
+  options: { indexAxis:'y', responsive:true,
+    plugins:{ legend:{ display:false } },
+    scales:{ x:{ beginAtZero:true, ticks:{stepSize:1} } }
+  }
+});
+
+// 7. Interaction types
+new Chart(document.getElementById('interactionChart'), {
+  type: 'polarArea',
+  data: {
+    labels: {{ interaction_types | map(attribute='Type') | list | tojson }},
+    datasets: [{
+      data: {{ interaction_types | map(attribute='count') | list | tojson }},
+      backgroundColor: [
+        'rgba(46,134,193,.7)','rgba(39,174,96,.7)',
+        'rgba(243,156,18,.7)','rgba(142,68,173,.7)','rgba(149,165,166,.7)'
+      ]
+    }]
+  },
+  options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
+});
+</script>
+{% endblock %}

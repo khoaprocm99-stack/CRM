@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Chỉnh sửa' if customer else 'Thêm' }} khách hàng{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1><i class="bi bi-person-plus me-2"></i>
+    {{ 'Chỉnh sửa khách hàng' if customer else 'Thêm khách hàng mới' }}
+  </h1>
+</div>
+
+<div class="bg-white rounded-3 shadow-sm p-4" style="max-width:640px">
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Họ và tên *</label>
+        <input type="text" name="fullname" class="form-control"
+               value="{{ customer.FullName if customer else '' }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Email</label>
+        <input type="email" name="email" class="form-control"
+               value="{{ customer.Email if customer else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Điện thoại</label>
+        <input type="text" name="phone" class="form-control"
+               value="{{ customer.Phone if customer else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Công ty</label>
+        <input type="text" name="company" class="form-control"
+               value="{{ customer.Company if customer else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Phân khúc</label>
+        <select name="segment" class="form-select">
+          {% for s in ['SMB','Enterprise','Startup'] %}
+          <option value="{{ s }}"
+            {{ 'selected' if customer and customer.Segment==s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Nguồn</label>
+        <select name="source" class="form-select">
+          {% for s in ['Website','Referral','Event','Social','Other'] %}
+          <option value="{{ s }}"
+            {{ 'selected' if customer and customer.Source==s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold">Nhân viên phụ trách</label>
+        <select name="assigned_to" class="form-select">
+          <option value="">— Chưa phân công —</option>
+          {% for e in employees %}
+          <option value="{{ e.EmployeeID }}"
+            {{ 'selected' if customer and customer.AssignedTo==e.EmployeeID }}>
+            {{ e.FullName }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-lg me-1"></i>Lưu
+      </button>
+      <a href="{{ url_for('customers') }}" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

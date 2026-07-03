@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Chỉnh sửa' if opp else 'Thêm' }} cơ hội{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1><i class="bi bi-graph-up-arrow me-2"></i>
+    {{ 'Chỉnh sửa cơ hội' if opp else 'Thêm cơ hội bán hàng' }}
+  </h1>
+</div>
+
+<div class="bg-white rounded-3 shadow-sm p-4" style="max-width:700px">
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label fw-semibold">Tiêu đề *</label>
+        <input type="text" name="title" class="form-control"
+               value="{{ opp.Title if opp else '' }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Khách hàng *</label>
+        <select name="customer_id" class="form-select" required>
+          {% for c in customers %}
+          <option value="{{ c.CustomerID }}"
+            {{ 'selected' if opp and opp.CustomerID==c.CustomerID }}>
+            {{ c.FullName }} ({{ c.Company }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Nhân viên phụ trách *</label>
+        <select name="employee_id" class="form-select" required>
+          {% for e in employees %}
+          <option value="{{ e.EmployeeID }}"
+            {{ 'selected' if opp and opp.EmployeeID==e.EmployeeID }}>
+            {{ e.FullName }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Sản phẩm</label>
+        <select name="product_id" class="form-select">
+          <option value="">— Chưa chọn —</option>
+          {% for p in products %}
+          <option value="{{ p.ProductID }}"
+            {{ 'selected' if opp and opp.ProductID==p.ProductID }}>
+            {{ p.ProductName }} ({{ "{:,.0f}".format(p.Price) }} ₫)
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Giai đoạn</label>
+        <select name="stage" class="form-select">
+          {% for s in ['Lead','Qualified','Proposal','Negotiation','Closed Won','Closed Lost'] %}
+          <option value="{{ s }}" {{ 'selected' if opp and opp.Stage==s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Giá trị (VND)</label>
+        <input type="number" name="value" class="form-control" min="0"
+               value="{{ opp.Value if opp else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Xác suất (%)</label>
+        <input type="number" name="probability" class="form-control" min="0" max="100"
+               value="{{ opp.Probability if opp else 50 }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Dự kiến đóng</label>
+        <input type="date" name="expected_close" class="form-control"
+               value="{{ opp.ExpectedClose.strftime('%Y-%m-%d') if opp and opp.ExpectedClose else '' }}">
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold">Ghi chú</label>
+        <textarea name="notes" class="form-control" rows="3">{{ opp.Notes if opp else '' }}</textarea>
+      </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-lg me-1"></i>Lưu
+      </button>
+      <a href="{{ url_for('opportunities') }}" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

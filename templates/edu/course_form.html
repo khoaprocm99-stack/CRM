@@ -1,0 +1,61 @@
+{% extends "edu/base_edu.html" %}
+{% block title %}{{ 'Chỉnh sửa' if course else 'Thêm' }} khóa học{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="bi bi-book me-2"></i>{{ 'Chỉnh sửa khóa học' if course else 'Thêm khóa học mới' }}</h1>
+</div>
+<div class="bg-white rounded-3 shadow-sm p-4" style="max-width:600px">
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label fw-semibold">Tên khóa học *</label>
+        <input type="text" name="name" class="form-control"
+               value="{{ course.CourseName if course else '' }}" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Danh mục</label>
+        <select name="category" class="form-select">
+          {% for c in ['Lập trình','Ngoại ngữ','Kỹ năng','Thiết kế','Tin học'] %}
+          <option value="{{ c }}" {{ 'selected' if course and course.Category==c }}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Trình độ</label>
+        <select name="level" class="form-select">
+          {% for l in ['Cơ bản','Trung cấp','Nâng cao'] %}
+          <option value="{{ l }}" {{ 'selected' if course and course.Level==l }}>{{ l }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Số buổi</label>
+        <input type="number" name="duration" class="form-control" min="1"
+               value="{{ course.Duration if course else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Học phí (VND)</label>
+        <input type="number" name="fee" class="form-control" min="0"
+               value="{{ course.Fee if course else '' }}">
+      </div>
+      {% if course %}
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Trạng thái</label>
+        <select name="status" class="form-select">
+          <option value="Active" {{ 'selected' if course.Status=='Active' }}>Active</option>
+          <option value="Inactive" {{ 'selected' if course.Status=='Inactive' }}>Inactive</option>
+        </select>
+      </div>
+      {% endif %}
+      <div class="col-12">
+        <label class="form-label fw-semibold">Mô tả</label>
+        <textarea name="description" class="form-control" rows="3">{{ course.Description if course else '' }}</textarea>
+      </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-success"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+      <a href="{{ url_for('edu_courses') }}" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

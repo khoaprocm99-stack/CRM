@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}CRM System{% endblock %} — NLU Nhóm 07</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css">
+  <style>
+    :root { --crm-blue: #1a5276; --crm-accent: #2e86c1; }
+    body  { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+
+    /* Sidebar */
+    .sidebar { width: 240px; min-height: 100vh; background: var(--crm-blue);
+               position: fixed; top: 0; left: 0; z-index: 100; }
+    .sidebar .brand { padding: 20px 16px; border-bottom: 1px solid rgba(255,255,255,.15);
+                      color: #fff; font-weight: 700; font-size: 1.1rem; }
+    .sidebar .brand small { display:block; font-weight:400; font-size:.75rem; opacity:.7; }
+    .sidebar .nav-link { color: rgba(255,255,255,.8); padding: 10px 16px;
+                         border-radius: 6px; margin: 2px 8px; transition: .2s; }
+    .sidebar .nav-link:hover, .sidebar .nav-link.active
+                       { background: rgba(255,255,255,.15); color: #fff; }
+    .sidebar .nav-link i { margin-right: 8px; width: 18px; text-align:center; }
+    .sidebar .nav-section { color: rgba(255,255,255,.4); font-size:.7rem;
+                            text-transform:uppercase; padding: 12px 16px 4px; letter-spacing:.08em; }
+
+    /* Main content */
+    .main-content { margin-left: 240px; padding: 24px; }
+    .page-header  { background:#fff; border-radius:10px; padding:20px 24px;
+                    margin-bottom:20px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+    .page-header h1 { font-size:1.4rem; font-weight:700; color:var(--crm-blue); margin:0; }
+
+    /* Cards */
+    .stat-card { background:#fff; border-radius:10px; padding:20px;
+                 box-shadow:0 1px 4px rgba(0,0,0,.06); border-left:4px solid var(--crm-accent); }
+    .stat-card .value { font-size:1.8rem; font-weight:700; color:var(--crm-blue); }
+    .stat-card .label { color:#6c757d; font-size:.85rem; }
+
+    /* Tables */
+    .table-card { background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.06); overflow:hidden; }
+    .table-card .table { margin:0; }
+    .table thead th { background:var(--crm-blue); color:#fff; border:0; font-weight:600; font-size:.85rem; }
+    .table tbody tr:hover { background:#f0f4f8; }
+
+    /* Badges */
+    .badge-stage-lead          { background:#6c757d; }
+    .badge-stage-qualified     { background:#0dcaf0; color:#000; }
+    .badge-stage-proposal      { background:#ffc107; color:#000; }
+    .badge-stage-negotiation   { background:#fd7e14; }
+    .badge-stage-closed-won    { background:#198754; }
+    .badge-stage-closed-lost   { background:#dc3545; }
+
+    .badge-priority-low        { background:#6c757d; }
+    .badge-priority-medium     { background:#0dcaf0; color:#000; }
+    .badge-priority-high       { background:#fd7e14; }
+    .badge-priority-critical   { background:#dc3545; }
+
+    /* Module switcher */
+    .module-switcher { display:flex; gap:6px; padding:10px 12px;
+                       border-top:1px solid rgba(255,255,255,.15); }
+    .module-btn { flex:1; text-align:center; padding:6px 4px; border-radius:8px;
+                  font-size:.7rem; font-weight:600; cursor:pointer; border:none;
+                  transition:.2s; text-decoration:none; }
+    .module-btn.active { background:rgba(255,255,255,.25); color:#fff; }
+    .module-btn:not(.active) { background:rgba(255,255,255,.08); color:rgba(255,255,255,.7); }
+    .module-btn:hover { background:rgba(255,255,255,.2); color:#fff; }
+    .module-btn i { display:block; font-size:1.1rem; margin-bottom:2px; }
+
+    /* Flash messages */
+    .alert { border-radius:8px; }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="brand">
+    <i class="bi bi-diagram-3-fill"></i> CRM System
+    <small>NLU Nhóm 07 · 2024</small>
+  </div>
+
+  <!-- Ô tìm kiếm toàn cục -->
+  <div class="px-3 pt-3 pb-1">
+    <form action="{{ url_for('search') }}" method="get">
+      <div class="input-group input-group-sm">
+        <input type="text" name="q" class="form-control"
+               placeholder="Tìm kiếm..."
+               style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff;"
+               value="{{ request.args.get('q','') }}">
+        <button class="btn" type="submit"
+                style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.2);color:#fff;">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Menu items - có thể scroll -->
+  <div style="overflow-y:auto; height:calc(100vh - 280px);">
+    <div class="nav-section">Tổng quan</div>
+    <a href="{{ url_for('index') }}"
+       class="nav-link {% if request.endpoint=='index' %}active{% endif %}">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+    <a href="{{ url_for('reports') }}"
+       class="nav-link {% if request.endpoint=='reports' %}active{% endif %}">
+      <i class="bi bi-bar-chart-line"></i> Báo cáo
+    </a>
+
+    <div class="nav-section">Quản lý</div>
+    <a href="{{ url_for('customers') }}"
+       class="nav-link {% if 'customer' in request.endpoint %}active{% endif %}">
+      <i class="bi bi-people"></i> Khách hàng
+    </a>
+    <a href="{{ url_for('opportunities') }}"
+       class="nav-link {% if 'opportunit' in request.endpoint %}active{% endif %}">
+      <i class="bi bi-graph-up-arrow"></i> Cơ hội bán hàng
+    </a>
+    <a href="{{ url_for('interactions') }}"
+       class="nav-link {% if 'interaction' in request.endpoint %}active{% endif %}">
+      <i class="bi bi-chat-dots"></i> Tương tác
+    </a>
+    <a href="{{ url_for('tickets') }}"
+       class="nav-link {% if 'ticket' in request.endpoint %}active{% endif %}">
+      <i class="bi bi-ticket-detailed"></i> Ticket hỗ trợ
+    </a>
+    <a href="{{ url_for('employees') }}"
+       class="nav-link {% if 'employee' in request.endpoint %}active{% endif %}">
+      <i class="bi bi-person-badge"></i> Nhân viên
+    </a>
+    <a href="{{ url_for('products') }}"
+       class="nav-link {% if 'product' in request.endpoint %}active{% endif %}">
+      <i class="bi bi-box-seam"></i> Sản phẩm
+    </a>
+
+    {% if session.get('role') == 'admin' %}
+    <div class="nav-section">Hệ thống</div>
+    <a href="{{ url_for('users') }}"
+       class="nav-link {% if request.endpoint in ['users','add_user','edit_user'] %}active{% endif %}">
+      <i class="bi bi-shield-lock"></i> Tài khoản
+      {% set pending = namespace(count=0) %}
+      {# Badge hiển thị nếu có tài khoản chờ duyệt #}
+    </a>
+    <a href="{{ url_for('activity_log') }}"
+       class="nav-link {% if request.endpoint=='activity_log' %}active{% endif %}">
+      <i class="bi bi-journal-text"></i> Nhật ký hoạt động
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Module switcher -->
+  <div class="module-switcher">
+    <a href="{{ url_for('index') }}" class="module-btn active" title="CRM Tổng quát">
+      <i class="bi bi-diagram-3"></i>
+      Tổng quát
+    </a>
+    <a href="{{ url_for('edu_home') }}" class="module-btn" title="CRM Giáo dục">
+      <i class="bi bi-mortarboard"></i>
+      Giáo dục
+    </a>
+  </div>
+
+  <!-- User info + logout cố định ở dưới -->
+  <div style="position:absolute; bottom:0; left:0; right:0;
+              border-top:1px solid rgba(255,255,255,.15);
+              background:var(--crm-blue); padding:10px 12px;">
+    <div style="color:rgba(255,255,255,.9); font-size:.82rem; padding:0 4px 6px;
+                display:flex; align-items:center; gap:6px;">
+      <i class="bi bi-person-circle"></i>
+      <span class="fw-semibold">{{ session.get('name','') }}</span>
+      <span class="badge ms-auto
+        {% if session.get('role')=='admin' %}bg-warning text-dark
+        {% elif session.get('role')=='employee' %}bg-primary
+        {% else %}bg-secondary{% endif %}"
+        style="font-size:.65rem">
+        {{ 'Admin' if session.get('role')=='admin' else 'NV' if session.get('role')=='employee' else 'Khách' }}
+      </span>
+    </div>
+    <div class="d-flex gap-1">
+      <a href="{{ url_for('profile') }}"
+         class="nav-link flex-fill text-center py-1" style="margin:0; border-radius:6px; font-size:.78rem;">
+        <i class="bi bi-key"></i> Đổi MK
+      </a>
+      <a href="{{ url_for('logout') }}"
+         class="nav-link flex-fill text-center py-1 text-danger" style="margin:0; border-radius:6px; font-size:.78rem;">
+        <i class="bi bi-box-arrow-left"></i> Đăng xuất
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- Main -->
+<div class="main-content">
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'success' if cat=='success' else 'warning' if cat=='warning' else 'danger' }} alert-dismissible fade show" role="alert">
+        {{ msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+{% block scripts %}{% endblock %}
+
+<!-- Logo NLU góc dưới phải -->
+<div style="position:fixed; bottom:16px; right:16px; z-index:999;
+            background:white; border-radius:12px; padding:8px 12px;
+            box-shadow:0 2px 12px rgba(0,0,0,0.15);
+            display:flex; align-items:center; gap:10px;">
+  <img src="{{ url_for('static', filename='logo_nlu.png') }}"
+       alt="NLU" style="height:40px; width:40px; object-fit:contain;"
+       onerror="this.style.display='none'">
+  <div style="line-height:1.3">
+    <div style="font-size:.7rem; font-weight:700; color:#1a5276;">ĐH NÔNG LÂM TP.HCM</div>
+    <div style="font-size:.65rem; color:#666;">Nhóm 07 · Khóa 2024–2028</div>
+  </div>
+</div>
+
+</body>
+</html>

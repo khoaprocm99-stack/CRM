@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}{{ customer.FullName }}{% endblock %}
+{% block content %}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h1><i class="bi bi-person-lines-fill me-2"></i>{{ customer.FullName }}</h1>
+    <small class="text-muted">{{ customer.Company }} · {{ customer.Segment }} · {{ customer.Source }}</small>
+  </div>
+  <div>
+    <a href="{{ url_for('edit_customer', cid=customer.CustomerID) }}" class="btn btn-outline-primary me-2">
+      <i class="bi bi-pencil me-1"></i>Chỉnh sửa
+    </a>
+    <a href="{{ url_for('customers') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Danh sách
+    </a>
+  </div>
+</div>
+
+<!-- Info -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="bg-white rounded-3 p-3 shadow-sm">
+      <div class="text-muted small mb-1">Email</div>
+      <div>{{ customer.Email }}</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="bg-white rounded-3 p-3 shadow-sm">
+      <div class="text-muted small mb-1">Điện thoại</div>
+      <div>{{ customer.Phone or '—' }}</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="bg-white rounded-3 p-3 shadow-sm">
+      <div class="text-muted small mb-1">Trạng thái</div>
+      <span class="badge bg-success">{{ customer.Status }}</span>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="bg-white rounded-3 p-3 shadow-sm">
+      <div class="text-muted small mb-1">Ngày tạo</div>
+      <div>{{ customer.CreatedAt.strftime('%d/%m/%Y') if customer.CreatedAt }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-3" id="custTab">
+  <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#opps">
+    <i class="bi bi-graph-up-arrow me-1"></i>Cơ hội ({{ opportunities|length }})
+  </a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#inters">
+    <i class="bi bi-chat-dots me-1"></i>Tương tác ({{ interactions|length }})
+  </a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#ticks">
+    <i class="bi bi-ticket me-1"></i>Ticket ({{ tickets|length }})
+  </a></li>
+</ul>
+
+<div class="tab-content">
+  <!-- Opportunities -->
+  <div class="tab-pane fade show active" id="opps">
+    <div class="table-card">
+      <table class="table table-sm align-middle">
+        <thead><tr><th>Tiêu đề</th><th>Sản phẩm</th><th>Giai đoạn</th>
+          <th class="text-end">Giá trị</th><th>Nhân viên</th></tr></thead>
+        <tbody>
+          {% for o in opportunities %}
+          <tr>
+            <td>{{ o.Title }}</td>
+            <td>{{ o.ProductName or '—' }}</td>
+            <td>
+              {% set sc = {'Lead':'secondary','Qualified':'info','Proposal':'warning',
+                           'Negotiation':'primary','Closed Won':'success','Closed Lost':'danger'} %}
+              <span class="badge bg-{{ sc.get(o.Stage,'secondary') }}
+                    {% if o.Stage in ['Qualified','Proposal'] %} text-dark{% endif %}">
+                {{ o.Stage }}
+              </span>
+            </td>
+            <td class="text-end">{{ "{:,.0f}".format(o.Value or 0) }} ₫</td>
+            <td>{{ o.emp }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted">Chưa có cơ hội nào</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Interactions -->
+  <div class="tab-pane fade" id="inters">
+    <div class="table-card">
+      <table class="table table-sm align-middle">
+        <thead><tr><th>Loại</th><th>Chủ đề</th><th>Ghi chú</th><th>Thời gian</th><th>NV</th></tr></thead>
+        <tbody>
+          {% for i in interactions %}
+          <tr>
+            <td><span class="badge bg-info text-dark">{{ i.Type }}</span></td>
+            <td>{{ i.Subject }}</td>
+            <td class="text-muted" style="font-size:.82rem">{{ i.Notes or '' }}</td>
+            <td style="font-size:.82rem">{{ i.InteractedAt.strftime('%d/%m/%Y %H:%M') if i.InteractedAt }}</td>
+            <td>{{ i.emp }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted">Chưa có tương tác</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tickets -->
+  <div class="tab-pane fade" id="ticks">
+    <div class="table-card">
+      <table class="table table-sm align-middle">
+        <thead><tr><th>Chủ đề</th><th>Ưu tiên</th><th>Trạng thái</th><th>Ngày tạo</th></tr></thead>
+        <tbody>
+          {% for t in tickets %}
+          <tr>
+            <td>{{ t.Subject }}</td>
+            <td>
+              {% set pc = {'Low':'secondary','Medium':'info','High':'warning','Critical':'danger'} %}
+              <span class="badge bg-{{ pc.get(t.Priority,'secondary') }}
+                    {% if t.Priority in ['Medium'] %} text-dark{% endif %}">
+                {{ t.Priority }}
+              </span>
+            </td>
+            <td>
+              {% set sc = {'Open':'danger','In Progress':'warning','Resolved':'success','Closed':'secondary'} %}
+              <span class="badge bg-{{ sc.get(t.Status,'secondary') }}
+                    {% if t.Status=='In Progress' %} text-dark{% endif %}">
+                {{ t.Status }}
+              </span>
+            </td>
+            <td style="font-size:.82rem">{{ t.CreatedAt.strftime('%d/%m/%Y') if t.CreatedAt }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="text-center text-muted">Chưa có ticket</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

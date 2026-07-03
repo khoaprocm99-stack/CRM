@@ -1,0 +1,95 @@
+{% extends "edu/base_edu.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}Lớp học{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h1><i class="bi bi-calendar3 me-2"></i>Lớp học</h1>
+    <small class="text-muted">Tổng {{ paged.total }} lớp</small>
+  </div>
+  {% if session.get('role') == 'admin' %}
+  <a href="{{ url_for('edu_add_class') }}" class="btn btn-success">
+    <i class="bi bi-plus-lg me-1"></i> Thêm lớp
+  </a>
+  {% endif %}
+</div>
+<div class="bg-white rounded-3 shadow-sm p-3 mb-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-5">
+      <label class="form-label small fw-semibold mb-1">🔍 Tìm kiếm</label>
+      <input type="text" name="q" class="form-control form-control-sm"
+             placeholder="Tên lớp, khóa học..." value="{{ q }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold mb-1">Trạng thái</label>
+      <select name="status" class="form-select form-select-sm">
+        <option value="">Tất cả</option>
+        {% for s in statuses %}
+        <option value="{{ s }}" {{ 'selected' if status==s }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 d-flex gap-2 align-items-end">
+      <button type="submit" class="btn btn-success btn-sm flex-fill">
+        <i class="bi bi-search me-1"></i>Tìm
+      </button>
+      <a href="{{ url_for('edu_classes') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-x-lg"></i>
+      </a>
+    </div>
+  </form>
+</div>
+<div class="table-card">
+  <table class="table table-hover align-middle">
+    <thead><tr>
+      <th>Tên lớp</th><th>Khóa học</th><th>Giảng viên</th>
+      <th>Lịch học</th><th>Phòng</th><th>Khai giảng</th>
+      <th class="text-center">Sĩ số</th><th>Trạng thái</th><th></th>
+    </tr></thead>
+    <tbody>
+      {% set sc = {'Upcoming':'info','Ongoing':'success','Completed':'secondary','Cancelled':'danger'} %}
+      {% for cl in classes %}
+      <tr>
+        <td class="fw-semibold">{{ cl.ClassName }}</td>
+        <td>
+          <div>{{ cl.CourseName }}</div>
+          <div class="text-muted" style="font-size:.75rem">{{ cl.Category }}</div>
+        </td>
+        <td style="font-size:.85rem">{{ cl.teacher or '—' }}</td>
+        <td style="font-size:.82rem">{{ cl.Schedule or '—' }}</td>
+        <td style="font-size:.82rem">{{ cl.Room or '—' }}</td>
+        <td style="font-size:.82rem">
+          {{ cl.StartDate.strftime('%d/%m/%Y') if cl.StartDate else '—' }}
+        </td>
+        <td class="text-center">
+          <div style="font-size:.82rem">{{ cl.CurrentStudents }}/{{ cl.MaxStudents }}</div>
+          <div class="progress" style="height:4px;width:60px;margin:0 auto">
+            <div class="progress-bar bg-{{ 'danger' if cl.CurrentStudents>=cl.MaxStudents else 'success' }}"
+                 style="width:{{ ([cl.CurrentStudents/cl.MaxStudents*100,100]|min)|int }}%"></div>
+          </div>
+        </td>
+        <td>
+          <span class="badge bg-{{ sc.get(cl.Status,'secondary') }}
+                {% if cl.Status=='Upcoming' %} text-dark{% endif %}">
+            {{ cl.Status }}
+          </span>
+        </td>
+        <td>
+          {% if session.get('role') == 'admin' %}
+          <a href="{{ url_for('edu_edit_class', cid=cl.ClassID) }}"
+             class="btn btn-sm btn-outline-secondary me-1"><i class="bi bi-pencil"></i></a>
+          <form action="{{ url_for('edu_delete_class', cid=cl.ClassID) }}" method="post"
+                class="d-inline" onsubmit="return confirm('Xóa lớp này?')">
+            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" class="text-center text-muted py-4">Chưa có lớp học nào</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {{ render_pagination(paged, 'edu_classes', q=q, status=status) }}
+</div>
+{% endblock %}

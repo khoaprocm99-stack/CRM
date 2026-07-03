@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Chỉnh sửa' if product else 'Thêm' }} sản phẩm{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1><i class="bi bi-box-seam me-2"></i>
+    {{ 'Chỉnh sửa sản phẩm' if product else 'Thêm sản phẩm mới' }}
+  </h1>
+</div>
+
+<div class="bg-white rounded-3 shadow-sm p-4" style="max-width:580px">
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label fw-semibold">Tên sản phẩm *</label>
+        <input type="text" name="name" class="form-control"
+               value="{{ product.ProductName if product else '' }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Danh mục</label>
+        <select name="category" class="form-select">
+          {% for c in ['CRM','Analytics','Integration','Support'] %}
+          <option value="{{ c }}"
+            {{ 'selected' if product and product.Category==c }}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Giá (VND)</label>
+        <input type="number" name="price" class="form-control" min="0"
+               value="{{ product.Price if product else '' }}">
+      </div>
+      {% if product %}
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Trạng thái</label>
+        <select name="status" class="form-select">
+          <option value="Active"   {{ 'selected' if product.Status=='Active' }}>Active</option>
+          <option value="Inactive" {{ 'selected' if product.Status=='Inactive' }}>Inactive</option>
+        </select>
+      </div>
+      {% endif %}
+      <div class="col-12">
+        <label class="form-label fw-semibold">Mô tả</label>
+        <textarea name="description" class="form-control" rows="3">
+          {{- product.Description if product else '' -}}
+        </textarea>
+      </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-lg me-1"></i>Lưu
+      </button>
+      <a href="{{ url_for('products') }}" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

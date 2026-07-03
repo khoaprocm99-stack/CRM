@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng nhập — CRM System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css">
+  <style>
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a5276 0%, #2e86c1 50%, #1a8a6e 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .login-card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .logo-area {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .logo-area img {
+      height: 72px;
+      margin-bottom: 12px;
+    }
+    .logo-area h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #1a5276;
+      margin: 0;
+    }
+    .logo-area small {
+      color: #666;
+      font-size: .8rem;
+    }
+    .form-label { font-weight: 600; color: #333; }
+    .form-control:focus {
+      border-color: #2e86c1;
+      box-shadow: 0 0 0 3px rgba(46,134,193,.15);
+    }
+    .btn-login {
+      background: linear-gradient(135deg, #1a5276, #2e86c1);
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 10px;
+      border-radius: 8px;
+      transition: .2s;
+    }
+    .btn-login:hover {
+      background: linear-gradient(135deg, #154360, #2471a3);
+      color: white;
+    }
+    .hint-box {
+      background: #f0f6ff;
+      border: 1px solid #d0e8f8;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 20px;
+    }
+    .hint-box table td { padding: 2px 8px; font-size: .82rem; }
+    .hint-box table td:first-child { font-weight: 600; color: #1a5276; }
+    .divider {
+      text-align: center;
+      color: #aaa;
+      font-size: .8rem;
+      margin: 16px 0;
+      position: relative;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background: #ddd;
+    }
+    .divider::before { left: 0; }
+    .divider::after  { right: 0; }
+  </style>
+</head>
+<body>
+<div class="login-card">
+  <div class="logo-area">
+    <img src="{{ url_for('static', filename='logo_nlu.png') }}"
+         alt="NLU" onerror="this.style.display='none'">
+    <h1><i class="bi bi-diagram-3-fill me-2" style="color:#2e86c1"></i>CRM System</h1>
+    <small>Đồ án Cơ sở Ứng dụng HTTT — Nhóm 07 — NLU 2024</small>
+  </div>
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'success' if cat=='success' else 'warning' if cat in ('warning','info') else 'danger' }} py-2 mb-3" style="font-size:.88rem">
+        {{ msg }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="post">
+    <div class="mb-3">
+      <label class="form-label"><i class="bi bi-person me-1"></i>Tên đăng nhập</label>
+      <input type="text" name="username" class="form-control"
+             placeholder="Nhập tên đăng nhập" autofocus required>
+    </div>
+    <div class="mb-4">
+      <label class="form-label"><i class="bi bi-lock me-1"></i>Mật khẩu</label>
+      <div class="input-group">
+        <input type="password" name="password" id="pwInput"
+               class="form-control" placeholder="Nhập mật khẩu" required>
+        <button class="btn btn-outline-secondary" type="button"
+                onclick="togglePw()">
+          <i class="bi bi-eye" id="pwIcon"></i>
+        </button>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-login w-100">
+      <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
+    </button>
+  </form>
+
+  <div class="text-center mt-3" style="font-size:.88rem">
+    Chưa có tài khoản?
+    <a href="{{ url_for('register') }}" class="fw-semibold text-decoration-none">
+      Đăng ký ngay
+    </a>
+  </div>
+
+  <div class="hint-box">
+    <div style="font-size:.78rem; color:#666; margin-bottom:6px;">
+      <i class="bi bi-info-circle me-1"></i>Tài khoản mặc định:
+    </div>
+    <table>
+      <tr>
+        <td>Admin</td>
+        <td>admin / admin123</td>
+        <td><span class="badge bg-success" style="font-size:.7rem">Toàn quyền</span></td>
+      </tr>
+      <tr>
+        <td>Khách</td>
+        <td>guest / guest123</td>
+        <td><span class="badge bg-secondary" style="font-size:.7rem">Chỉ xem</span></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<script>
+function togglePw() {
+  const input = document.getElementById('pwInput');
+  const icon  = document.getElementById('pwIcon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'bi bi-eye-slash';
+  } else {
+    input.type = 'password';
+    icon.className = 'bi bi-eye';
+  }
+}
+</script>
+</body>
+</html>

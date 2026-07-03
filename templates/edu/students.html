@@ -1,0 +1,111 @@
+{% extends "edu/base_edu.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}Học viên{% endblock %}
+{% block content %}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h1><i class="bi bi-people me-2"></i>Học viên</h1>
+    <small class="text-muted">Tổng {{ paged.total }} học viên</small>
+  </div>
+  {% if session.get('role') in ['admin','employee'] %}
+  <a href="{{ url_for('edu_add_student') }}" class="btn btn-success">
+    <i class="bi bi-plus-lg me-1"></i> Thêm học viên
+  </a>
+  {% endif %}
+</div>
+
+<!-- Tìm kiếm + lọc -->
+<div class="bg-white rounded-3 shadow-sm p-3 mb-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label small fw-semibold mb-1">🔍 Tìm kiếm</label>
+      <input type="text" name="q" class="form-control form-control-sm"
+             placeholder="Tên, email, số điện thoại..." value="{{ q }}">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small fw-semibold mb-1">Trạng thái</label>
+      <select name="status" class="form-select form-select-sm">
+        <option value="">Tất cả</option>
+        {% for s in statuses %}
+        <option value="{{ s }}" {{ 'selected' if status==s }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small fw-semibold mb-1">Nguồn</label>
+      <select name="source" class="form-select form-select-sm">
+        <option value="">Tất cả</option>
+        {% for s in sources %}
+        <option value="{{ s }}" {{ 'selected' if source==s }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 d-flex gap-2 align-items-end">
+      <button type="submit" class="btn btn-success btn-sm flex-fill">
+        <i class="bi bi-search me-1"></i>Tìm
+      </button>
+      <a href="{{ url_for('edu_students') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-x-lg"></i> Xóa lọc
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- Bảng học viên -->
+<div class="table-card">
+  <table class="table table-hover align-middle">
+    <thead><tr>
+      <th>#</th><th>Họ tên</th><th>Liên hệ</th><th>Giới tính</th>
+      <th>Nguồn</th><th>Phụ trách</th><th>Trạng thái</th>
+      <th class="text-center">Đăng ký</th><th></th>
+    </tr></thead>
+    <tbody>
+      {% set sc = {'Prospect':'secondary','Enrolled':'info','Studying':'success','Graduated':'primary','Dropped':'danger'} %}
+      {% for s in students %}
+      <tr>
+        <td class="text-muted" style="font-size:.8rem">{{ s.StudentID }}</td>
+        <td>
+          <a href="{{ url_for('edu_student_detail', sid=s.StudentID) }}"
+             class="fw-semibold text-decoration-none text-dark">{{ s.FullName }}</a>
+          <div class="text-muted" style="font-size:.75rem">{{ s.Email or '—' }}</div>
+        </td>
+        <td style="font-size:.85rem">{{ s.Phone or '—' }}</td>
+        <td style="font-size:.85rem">{{ s.Gender or '—' }}</td>
+        <td>
+          <span class="badge bg-secondary" style="font-size:.72rem">{{ s.Source }}</span>
+        </td>
+        <td style="font-size:.85rem">{{ s.staff_name or '—' }}</td>
+        <td>
+          <span class="badge bg-{{ sc.get(s.Status,'secondary') }}">{{ s.Status }}</span>
+        </td>
+        <td class="text-center">
+          <span class="badge bg-{{ 'success' if s.enroll_count else 'light text-dark' }}">
+            {{ s.enroll_count }}
+          </span>
+        </td>
+        <td>
+          <a href="{{ url_for('edu_student_detail', sid=s.StudentID) }}"
+             class="btn btn-sm btn-outline-success me-1"><i class="bi bi-eye"></i></a>
+          {% if session.get('role') in ['admin','employee'] %}
+          <a href="{{ url_for('edu_edit_student', sid=s.StudentID) }}"
+             class="btn btn-sm btn-outline-secondary me-1"><i class="bi bi-pencil"></i></a>
+          {% endif %}
+          {% if session.get('role') == 'admin' %}
+          <form action="{{ url_for('edu_delete_student', sid=s.StudentID) }}" method="post"
+                class="d-inline" onsubmit="return confirm('Xóa học viên này?')">
+            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" class="text-center text-muted py-4">
+        {{ 'Không tìm thấy kết quả' if q or status or source else 'Chưa có học viên nào' }}
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {{ render_pagination(paged, 'edu_students', q=q, status=status, source=source) }}
+</div>
+{% endblock %}

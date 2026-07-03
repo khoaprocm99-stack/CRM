@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Tìm kiếm: {{ q }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1><i class="bi bi-search me-2"></i>Kết quả tìm kiếm</h1>
+  <small class="text-muted">Từ khóa: <strong>{{ q }}</strong></small>
+</div>
+
+{% if not q %}
+<div class="text-center text-muted py-5">
+  <i class="bi bi-search" style="font-size:3rem;opacity:.3"></i>
+  <div class="mt-2">Nhập từ khóa để tìm kiếm</div>
+</div>
+{% else %}
+
+{% set total = results.customers|length + results.opportunities|length + results.interactions|length + results.tickets|length %}
+{% if total == 0 %}
+<div class="text-center text-muted py-5">
+  <i class="bi bi-inbox" style="font-size:3rem;opacity:.3"></i>
+  <div class="mt-2">Không tìm thấy kết quả cho "<strong>{{ q }}</strong>"</div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <!-- Khách hàng -->
+  {% if results.customers %}
+  <div class="col-12">
+    <div class="table-card">
+      <div class="p-3 border-bottom fw-semibold">
+        <i class="bi bi-people me-1 text-primary"></i>
+        Khách hàng <span class="badge bg-primary ms-1">{{ results.customers|length }}</span>
+      </div>
+      <table class="table table-sm align-middle mb-0">
+        <thead><tr><th>Họ tên</th><th>Công ty</th><th>Email</th><th>Phân khúc</th><th></th></tr></thead>
+        <tbody>
+          {% for c in results.customers %}
+          <tr>
+            <td class="fw-semibold">{{ c.FullName }}</td>
+            <td>{{ c.Company }}</td>
+            <td>{{ c.Email }}</td>
+            <td><span class="badge bg-primary">{{ c.Segment }}</span></td>
+            <td>
+              <a href="{{ url_for('customer_detail', cid=c.CustomerID) }}"
+                 class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="p-2 text-end border-top">
+        <a href="{{ url_for('customers', q=q) }}" class="btn btn-sm btn-link">
+          Xem tất cả trong Khách hàng →
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Cơ hội -->
+  {% if results.opportunities %}
+  <div class="col-md-6">
+    <div class="table-card h-100">
+      <div class="p-3 border-bottom fw-semibold">
+        <i class="bi bi-graph-up-arrow me-1 text-success"></i>
+        Cơ hội bán hàng <span class="badge bg-success ms-1">{{ results.opportunities|length }}</span>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for o in results.opportunities %}
+        <li class="list-group-item px-3 py-2">
+          <div class="fw-semibold" style="font-size:.9rem">{{ o.Title }}</div>
+          <div class="text-muted" style="font-size:.78rem">{{ o.customer }} · {{ o.Stage }}</div>
+        </li>
+        {% endfor %}
+      </ul>
+      <div class="p-2 text-end border-top">
+        <a href="{{ url_for('opportunities', q=q) }}" class="btn btn-sm btn-link">
+          Xem tất cả →
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Tương tác -->
+  {% if results.interactions %}
+  <div class="col-md-6">
+    <div class="table-card h-100">
+      <div class="p-3 border-bottom fw-semibold">
+        <i class="bi bi-chat-dots me-1 text-info"></i>
+        Tương tác <span class="badge bg-info text-dark ms-1">{{ results.interactions|length }}</span>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for i in results.interactions %}
+        <li class="list-group-item px-3 py-2">
+          <div class="d-flex justify-content-between">
+            <span class="fw-semibold" style="font-size:.9rem">{{ i.Subject }}</span>
+            <span class="badge bg-secondary">{{ i.Type }}</span>
+          </div>
+          <div class="text-muted" style="font-size:.78rem">{{ i.customer }}</div>
+        </li>
+        {% endfor %}
+      </ul>
+      <div class="p-2 text-end border-top">
+        <a href="{{ url_for('interactions', q=q) }}" class="btn btn-sm btn-link">
+          Xem tất cả →
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Tickets -->
+  {% if results.tickets %}
+  <div class="col-12">
+    <div class="table-card">
+      <div class="p-3 border-bottom fw-semibold">
+        <i class="bi bi-ticket me-1 text-warning"></i>
+        Ticket hỗ trợ <span class="badge bg-warning text-dark ms-1">{{ results.tickets|length }}</span>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for t in results.tickets %}
+        {% set sc = {'Open':'danger','In Progress':'warning','Resolved':'success','Closed':'secondary'} %}
+        <li class="list-group-item px-3 py-2 d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-semibold" style="font-size:.9rem">{{ t.Subject }}</div>
+            <div class="text-muted" style="font-size:.78rem">{{ t.customer }}</div>
+          </div>
+          <span class="badge bg-{{ sc.get(t.Status,'secondary') }}">{{ t.Status }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      <div class="p-2 text-end border-top">
+        <a href="{{ url_for('tickets', q=q) }}" class="btn btn-sm btn-link">
+          Xem tất cả →
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+{% endif %}
+{% endblock %}

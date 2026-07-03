@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Tài khoản của tôi{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1><i class="bi bi-person-circle me-2"></i>Tài khoản của tôi</h1>
+</div>
+
+<div class="row g-3" style="max-width:700px">
+  <!-- Thông tin tài khoản -->
+  <div class="col-md-5">
+    <div class="bg-white rounded-3 shadow-sm p-4 text-center">
+      <div class="rounded-circle bg-primary text-white d-flex align-items-center
+                  justify-content-center mx-auto mb-3"
+           style="width:72px;height:72px;font-size:2rem;font-weight:700">
+        {{ session.get('name','?')[0] }}
+      </div>
+      <div class="fw-bold fs-5">{{ session.get('name') }}</div>
+      <div class="text-muted mb-2">@{{ session.get('user') }}</div>
+      {% set rc = {'admin':'danger','employee':'primary','guest':'secondary'} %}
+      {% set rl = {'admin':'Admin','employee':'Nhân viên','guest':'Khách'} %}
+      <span class="badge bg-{{ rc.get(session.get('role'),'secondary') }} fs-6">
+        {{ rl.get(session.get('role'), session.get('role')) }}
+      </span>
+      <hr>
+      <div class="text-start" style="font-size:.85rem">
+        <div class="text-muted mb-1">Quyền hạn:</div>
+        {% if session.get('role') == 'admin' %}
+          <div><i class="bi bi-check-circle-fill text-success me-1"></i>Thêm/sửa/xóa tất cả</div>
+          <div><i class="bi bi-check-circle-fill text-success me-1"></i>Quản lý tài khoản</div>
+          <div><i class="bi bi-check-circle-fill text-success me-1"></i>Xem báo cáo</div>
+        {% elif session.get('role') == 'employee' %}
+          <div><i class="bi bi-check-circle-fill text-success me-1"></i>Xem tất cả dữ liệu</div>
+          <div><i class="bi bi-check-circle-fill text-success me-1"></i>Thêm tương tác/ticket</div>
+          <div><i class="bi bi-x-circle-fill text-danger me-1"></i>Không xóa được dữ liệu</div>
+        {% else %}
+          <div><i class="bi bi-check-circle-fill text-success me-1"></i>Xem tất cả dữ liệu</div>
+          <div><i class="bi bi-x-circle-fill text-danger me-1"></i>Không thêm/sửa/xóa</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Đổi mật khẩu -->
+  <div class="col-md-7">
+    <div class="bg-white rounded-3 shadow-sm p-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-key me-2"></i>Đổi mật khẩu</h5>
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Mật khẩu hiện tại *</label>
+          <input type="password" name="old_password" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Mật khẩu mới *</label>
+          <input type="password" name="new_password" class="form-control"
+                 minlength="6" required placeholder="Ít nhất 6 ký tự">
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Xác nhận mật khẩu mới *</label>
+          <input type="password" name="confirm_password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg me-1"></i>Đổi mật khẩu
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

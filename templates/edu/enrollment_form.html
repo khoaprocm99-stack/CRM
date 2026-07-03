@@ -1,0 +1,105 @@
+{% extends "edu/base_edu.html" %}
+{% block title %}{{ 'Chỉnh sửa' if enroll else 'Tạo' }} đăng ký học{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="bi bi-journal-check me-2"></i>{{ 'Chỉnh sửa đăng ký' if enroll else 'Tạo đăng ký học mới' }}</h1>
+</div>
+<div class="bg-white rounded-3 shadow-sm p-4" style="max-width:700px">
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Học viên *</label>
+        <select name="student_id" class="form-select" required>
+          {% for s in students_list %}
+          <option value="{{ s.StudentID }}" {{ 'selected' if enroll and enroll.StudentID==s.StudentID }}>
+            {{ s.FullName }} — {{ s.Phone }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Lớp học *</label>
+        <select name="class_id" class="form-select" required id="classSelect">
+          {% for cl in classes_list %}
+          <option value="{{ cl.ClassID }}"
+                  data-fee="{{ cl.Fee if cl.Fee is defined else 0 }}"
+                  {{ 'selected' if enroll and enroll.ClassID==cl.ClassID }}>
+            {{ cl.ClassName }} — {{ cl.CourseName }}
+            {% if cl.seats is defined %} (còn {{ cl.seats }} chỗ){% endif %}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Nhân viên tư vấn</label>
+        <select name="staff_id" class="form-select">
+          <option value="">— Chưa phân công —</option>
+          {% for s in staff_list %}
+          <option value="{{ s.StaffID }}" {{ 'selected' if enroll and enroll.StaffID==s.StaffID }}>
+            {{ s.FullName }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if enroll %}
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Trạng thái</label>
+        <select name="status" class="form-select">
+          {% for s in ['Pending','Confirmed','Studying','Completed','Dropped','Refunded'] %}
+          <option value="{{ s }}" {{ 'selected' if enroll.Status==s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Giảm giá (VND)</label>
+        <input type="number" name="discount" class="form-control" min="0"
+               value="{{ enroll.Discount or 0 }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Học phí cuối (VND)</label>
+        <input type="number" name="final_fee" class="form-control" min="0"
+               value="{{ enroll.FinalFee or 0 }}">
+      </div>
+      {% else %}
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Học phí gốc</label>
+        <input type="number" name="total_fee" id="totalFee" class="form-control" min="0" readonly>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Giảm giá (VND)</label>
+        <input type="number" name="discount" id="discount" class="form-control" min="0" value="0">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Phải đóng</label>
+        <input type="number" name="final_fee_display" id="finalFee" class="form-control" readonly>
+      </div>
+      {% endif %}
+      <div class="col-12">
+        <label class="form-label fw-semibold">Ghi chú</label>
+        <textarea name="notes" class="form-control" rows="2">{{ enroll.Notes if enroll else '' }}</textarea>
+      </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-success"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+      <a href="{{ url_for('edu_enrollments') }}" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const sel = document.getElementById('classSelect');
+const tf  = document.getElementById('totalFee');
+const dc  = document.getElementById('discount');
+const ff  = document.getElementById('finalFee');
+function calc() {
+  if (!tf) return;
+  const fee = parseFloat(sel.options[sel.selectedIndex]?.dataset?.fee || 0);
+  tf.value = fee;
+  const disc = parseFloat(dc?.value || 0);
+  if(ff) ff.value = fee - disc;
+}
+if(sel) { sel.addEventListener('change', calc); calc(); }
+if(dc)  dc.addEventListener('input', calc);
+</script>
+{% endblock %}

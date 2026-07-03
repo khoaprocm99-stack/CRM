@@ -1,0 +1,50 @@
+{% extends "edu/base_edu.html" %}
+{% block title %}Nhân viên{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div><h1><i class="bi bi-person-badge me-2"></i>Nhân viên</h1></div>
+  {% if session.get('role') == 'admin' %}
+  <a href="{{ url_for('edu_add_staff') }}" class="btn btn-success">
+    <i class="bi bi-plus-lg me-1"></i> Thêm nhân viên
+  </a>
+  {% endif %}
+</div>
+<div class="row g-3">
+  {% for e in staff %}
+  <div class="col-md-4">
+    <div class="bg-white rounded-3 shadow-sm p-4">
+      <div class="d-flex align-items-center mb-3">
+        <div class="rounded-circle bg-success text-white d-flex align-items-center
+                    justify-content-center me-3" style="width:44px;height:44px;font-size:1.2rem;font-weight:700">
+          {{ e.FullName[0] }}
+        </div>
+        <div>
+          <div class="fw-semibold">{{ e.FullName }}</div>
+          <div class="text-muted" style="font-size:.82rem">{{ e.Role }}</div>
+        </div>
+      </div>
+      <div class="text-muted small mb-1"><i class="bi bi-envelope me-1"></i>{{ e.Email or '—' }}</div>
+      <div class="text-muted small mb-1"><i class="bi bi-telephone me-1"></i>{{ e.Phone or '—' }}</div>
+      <div class="text-muted small mb-2"><i class="bi bi-building me-1"></i>{{ e.Department }}</div>
+      <div class="d-flex gap-3 border-top pt-2">
+        <div class="text-center">
+          <div class="fw-bold text-success">{{ e.students }}</div>
+          <div style="font-size:.75rem;color:#6c757d">Học viên</div>
+        </div>
+        <div class="text-center">
+          <div class="fw-bold text-primary">{{ e.enrollments }}</div>
+          <div style="font-size:.75rem;color:#6c757d">Đăng ký</div>
+        </div>
+        <div class="ms-auto">
+          <span class="badge bg-{{ 'success' if e.Status=='Active' else 'secondary' }}">{{ e.Status }}</span>
+          {% if session.get('role') == 'admin' %}
+          <a href="{{ url_for('edu_edit_staff', sid=e.StaffID) }}"
+             class="btn btn-sm btn-outline-secondary ms-1"><i class="bi bi-pencil"></i></a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

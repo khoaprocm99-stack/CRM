@@ -1,0 +1,67 @@
+{% extends "edu/base_edu.html" %}
+{% block title %}Thêm phản hồi{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="bi bi-star me-2"></i>Ghi nhận phản hồi học viên</h1>
+</div>
+<div class="bg-white rounded-3 shadow-sm p-4" style="max-width:620px">
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Học viên *</label>
+        <select name="student_id" class="form-select" required>
+          {% for s in students_list %}
+          <option value="{{ s.StudentID }}">{{ s.FullName }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Lớp học liên quan</label>
+        <select name="class_id" class="form-select">
+          <option value="">— Không có —</option>
+          {% for cl in classes_list %}
+          <option value="{{ cl.ClassID }}">{{ cl.ClassName }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Loại</label>
+        <select name="type" class="form-select">
+          {% for t in ['Feedback','Complaint','Request'] %}
+          <option value="{{ t }}">{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Ưu tiên</label>
+        <select name="priority" class="form-select">
+          {% for p in ['Low','Medium','High','Critical'] %}
+          <option value="{{ p }}">{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Nhân viên tiếp nhận</label>
+        <select name="staff_id" class="form-select">
+          <option value="">— Chọn —</option>
+          {% for s in staff_list %}
+          <option value="{{ s.StaffID }}">{{ s.FullName }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold">Chủ đề *</label>
+        <input type="text" name="subject" class="form-control" required>
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold">Nội dung chi tiết</label>
+        <textarea name="content" class="form-control" rows="4"></textarea>
+      </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-success"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+      <a href="{{ url_for('edu_feedbacks') }}" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

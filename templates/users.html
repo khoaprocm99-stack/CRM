@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Quản lý tài khoản{% endblock %}
+{% block content %}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h1><i class="bi bi-shield-lock me-2"></i>Quản lý tài khoản
+      {% if pending_count > 0 %}
+      <span class="badge bg-danger ms-2">{{ pending_count }} chờ duyệt</span>
+      {% endif %}
+    </h1>
+    <small class="text-muted">Tài khoản đăng nhập hệ thống</small>
+  </div>
+  <a href="{{ url_for('add_user') }}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i> Thêm tài khoản
+  </a>
+</div>
+
+{% if pending_count > 0 %}
+<div class="alert alert-warning d-flex align-items-center mb-3">
+  <i class="bi bi-hourglass-split me-2 fs-5"></i>
+  <div>Có <strong>{{ pending_count }}</strong> tài khoản đang chờ duyệt.
+    Cuộn xuống để xem và duyệt.</div>
+</div>
+{% endif %}
+
+<div class="table-card">
+  <table class="table table-hover align-middle">
+    <thead><tr>
+      <th>#</th><th>Tên đăng nhập</th><th>Họ tên</th>
+      <th>Vai trò</th><th>Nhân viên liên kết</th>
+      <th>Trạng thái</th><th>Ngày tạo</th><th></th>
+    </tr></thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td class="text-muted" style="font-size:.8rem">{{ u.UserID }}</td>
+        <td>
+          <i class="bi bi-person-circle me-1 text-primary"></i>
+          <strong>{{ u.Username }}</strong>
+        </td>
+        <td>{{ u.FullName }}</td>
+        <td>
+          {% set rc = {'admin':'danger','employee':'primary','guest':'secondary'} %}
+          {% set rl = {'admin':'Admin','employee':'Nhân viên','guest':'Khách'} %}
+          <span class="badge bg-{{ rc.get(u.Role,'secondary') }}">
+            {{ rl.get(u.Role, u.Role) }}
+          </span>
+        </td>
+        <td>
+          {% if u.emp_name %}
+            <span class="text-success">
+              <i class="bi bi-link-45deg"></i>
+              {{ u.emp_name }}
+              <small class="text-muted">({{ u.Department }})</small>
+            </span>
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </td>
+        <td>
+          <span class="badge bg-{{ 'success' if u.Status=='Active' else 'secondary' }}">
+            {{ u.Status }}
+          </span>
+        </td>
+        <td style="font-size:.82rem">
+          {{ u.CreatedAt.strftime('%d/%m/%Y') if u.CreatedAt }}
+        </td>
+        <td>
+          {% if u.Status == 'Inactive' %}
+          <!-- Nút duyệt tài khoản -->
+          <form action="{{ url_for('approve_user', uid=u.UserID) }}" method="post" class="d-inline">
+            <select name="role" class="form-select form-select-sm d-inline-block w-auto me-1">
+              <option value="guest">Khách</option>
+              <option value="employee">Nhân viên</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button class="btn btn-sm btn-success me-1">
+              <i class="bi bi-check-lg"></i> Duyệt
+            </button>
+          </form>
+          <form action="{{ url_for('delete_user', uid=u.UserID) }}" method="post"
+                class="d-inline" onsubmit="return confirm('Từ chối và xóa tài khoản này?')">
+            <button class="btn btn-sm btn-outline-danger">
+              <i class="bi bi-x-lg"></i> Từ chối
+            </button>
+          </form>
+          {% else %}
+          <a href="{{ url_for('edit_user', uid=u.UserID) }}"
+             class="btn btn-sm btn-outline-secondary me-1">
+            <i class="bi bi-pencil"></i>
+          </a>
+          <form action="{{ url_for('delete_user', uid=u.UserID) }}" method="post"
+                class="d-inline" onsubmit="return confirm('Xóa tài khoản {{ u.Username }}?')">
+            <button class="btn btn-sm btn-outline-danger">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="text-center text-muted py-4">Không có tài khoản</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Ghi chú phân quyền -->
+<div class="mt-3 bg-white rounded-3 shadow-sm p-3">
+  <div class="fw-semibold mb-2"><i class="bi bi-info-circle me-1"></i>Phân quyền:</div>
+  <div class="d-flex gap-4" style="font-size:.85rem">
+    <div><span class="badge bg-danger me-1">Admin</span> Toàn quyền thêm/sửa/xóa</div>
+    <div><span class="badge bg-primary me-1">Nhân viên</span> Xem + thêm tương tác/ticket</div>
+    <div><span class="badge bg-secondary me-1">Khách</span> Chỉ xem dữ liệu</div>
+  </div>
+</div>
+{% endblock %}

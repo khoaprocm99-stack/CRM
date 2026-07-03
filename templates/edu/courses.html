@@ -1,0 +1,73 @@
+{% extends "edu/base_edu.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}Khóa học{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div><h1><i class="bi bi-book me-2"></i>Khóa học</h1>
+  <small class="text-muted">Tổng {{ paged.total }} khóa học</small></div>
+  {% if session.get('role') == 'admin' %}
+  <a href="{{ url_for('edu_add_course') }}" class="btn btn-success">
+    <i class="bi bi-plus-lg me-1"></i> Thêm khóa học
+  </a>
+  {% endif %}
+</div>
+<div class="bg-white rounded-3 shadow-sm p-3 mb-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-5">
+      <input type="text" name="q" class="form-control form-control-sm"
+             placeholder="🔍 Tên khóa học..." value="{{ q }}">
+    </div>
+    <div class="col-md-3">
+      <select name="category" class="form-select form-select-sm">
+        <option value="">Tất cả danh mục</option>
+        {% for c in categories %}
+        <option value="{{ c }}" {{ 'selected' if category==c }}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 d-flex gap-2">
+      <button type="submit" class="btn btn-success btn-sm flex-fill">
+        <i class="bi bi-search me-1"></i>Tìm
+      </button>
+      <a href="{{ url_for('edu_courses') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-x-lg"></i>
+      </a>
+    </div>
+  </form>
+</div>
+<div class="row g-3">
+  {% for c in courses %}
+  <div class="col-md-4">
+    <div class="bg-white rounded-3 shadow-sm p-4 h-100">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <span class="badge bg-success">{{ c.Category }}</span>
+        <span class="badge bg-{{ 'secondary' if c.Level=='Cơ bản' else 'warning text-dark' if c.Level=='Trung cấp' else 'danger' }}">
+          {{ c.Level }}
+        </span>
+      </div>
+      <h6 class="fw-bold">{{ c.CourseName }}</h6>
+      <p class="text-muted" style="font-size:.82rem">
+        {{ c.Description[:80] ~ '…' if c.Description and c.Description|length > 80 else c.Description or '' }}
+      </p>
+      <div class="d-flex justify-content-between align-items-center mt-auto">
+        <div>
+          <div class="fw-bold text-success">{{ "{:,.0f}".format(c.Fee or 0) }} ₫</div>
+          <div class="text-muted" style="font-size:.78rem">{{ c.Duration }} buổi</div>
+        </div>
+        <div>
+          <span class="badge bg-{{ 'success' if c.Status=='Active' else 'secondary' }}">
+            {{ c.Status }}
+          </span>
+          {% if session.get('role') == 'admin' %}
+          <a href="{{ url_for('edu_edit_course', cid=c.CourseID) }}"
+             class="btn btn-sm btn-outline-secondary ms-1"><i class="bi bi-pencil"></i></a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12 text-center text-muted py-4">Chưa có khóa học nào</div>
+  {% endfor %}
+</div>
+{% endblock %}

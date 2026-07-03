@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Nhân viên{% endblock %}
+{% block content %}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h1><i class="bi bi-person-badge me-2"></i>Nhân viên</h1>
+    <small class="text-muted">Đội ngũ Sales, Support và Marketing</small>
+  </div>
+  {% if session.get('role') == 'admin' %}
+  <a href="{{ url_for('add_employee') }}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i> Thêm nhân viên
+  </a>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  {% for e in employees %}
+  <div class="col-md-4">
+    <div class="bg-white rounded-3 shadow-sm p-4">
+      <div class="d-flex align-items-center mb-3">
+        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3"
+             style="width:44px;height:44px;font-size:1.2rem;font-weight:700">
+          {{ e.FullName[0] }}
+        </div>
+        <div>
+          <div class="fw-semibold">{{ e.FullName }}</div>
+          <div class="text-muted" style="font-size:.82rem">{{ e.Role }}</div>
+        </div>
+      </div>
+      <div class="text-muted small mb-1">
+        <i class="bi bi-envelope me-1"></i>{{ e.Email }}
+      </div>
+      <div class="text-muted small mb-2">
+        <i class="bi bi-building me-1"></i>{{ e.Department }}
+      </div>
+      <div class="d-flex gap-3">
+        <div class="text-center">
+          <div class="fw-bold text-primary">{{ e.customer_count }}</div>
+          <div style="font-size:.75rem;color:#6c757d">Khách hàng</div>
+        </div>
+        <div class="text-center">
+          <div class="fw-bold text-success">{{ e.opp_count }}</div>
+          <div style="font-size:.75rem;color:#6c757d">Cơ hội</div>
+        </div>
+        <div class="ms-auto">
+          <span class="badge bg-{{ 'success' if e.Status=='Active' else 'secondary' }}">
+            {{ e.Status }}
+          </span>
+        </div>
+      </div>
+      {% if session.get('role') == 'admin' %}
+      <div class="d-flex gap-2 mt-3 pt-3 border-top">
+        <a href="{{ url_for('edit_employee', eid=e.EmployeeID) }}"
+           class="btn btn-sm btn-outline-secondary flex-fill">
+          <i class="bi bi-pencil me-1"></i>Sửa
+        </a>
+        <form action="{{ url_for('delete_employee', eid=e.EmployeeID) }}" method="post"
+              class="flex-fill" onsubmit="return confirm('Xóa nhân viên này?')">
+          <button class="btn btn-sm btn-outline-danger w-100">
+            <i class="bi bi-trash me-1"></i>Xóa
+          </button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

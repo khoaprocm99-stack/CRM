@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Chỉnh sửa' if user else 'Thêm' }} tài khoản{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1><i class="bi bi-shield-lock me-2"></i>
+    {{ 'Chỉnh sửa tài khoản' if user else 'Thêm tài khoản mới' }}
+  </h1>
+</div>
+
+<div class="bg-white rounded-3 shadow-sm p-4" style="max-width:560px">
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Tên đăng nhập *</label>
+        <input type="text" name="username" class="form-control"
+               value="{{ user.Username if user else '' }}" required
+               {% if user and user.Username == 'admin' %}readonly{% endif %}>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          Mật khẩu {% if user %}<small class="text-muted">(để trống = giữ nguyên)</small>{% else %}*{% endif %}
+        </label>
+        <input type="password" name="password" class="form-control"
+               {% if not user %}required{% endif %}
+               placeholder="{{ '••••••' if user else 'Nhập mật khẩu' }}">
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold">Họ và tên *</label>
+        <input type="text" name="fullname" class="form-control"
+               value="{{ user.FullName if user else '' }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Vai trò</label>
+        <select name="role" class="form-select"
+                {% if user and user.Username == 'admin' %}disabled{% endif %}>
+          <option value="admin"    {{ 'selected' if user and user.Role=='admin' }}>
+            👑 Admin — Toàn quyền
+          </option>
+          <option value="employee" {{ 'selected' if user and user.Role=='employee' }}>
+            👤 Nhân viên — Xem + thêm
+          </option>
+          <option value="guest"    {{ 'selected' if user and user.Role=='guest' }}>
+            👁 Khách — Chỉ xem
+          </option>
+        </select>
+        {% if user and user.Username == 'admin' %}
+        <input type="hidden" name="role" value="admin">
+        {% endif %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Liên kết nhân viên</label>
+        <select name="employee_id" class="form-select">
+          <option value="">— Không liên kết —</option>
+          {% for e in employees %}
+          <option value="{{ e.EmployeeID }}"
+            {{ 'selected' if user and user.EmployeeID==e.EmployeeID }}>
+            {{ e.FullName }} ({{ e.Department }})
+          </option>
+          {% endfor %}
+        </select>
+        <small class="text-muted">Liên kết để tài khoản này đại diện cho nhân viên</small>
+      </div>
+      {% if user %}
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Trạng thái</label>
+        <select name="status" class="form-select">
+          <option value="Active"   {{ 'selected' if user.Status=='Active' }}>Active</option>
+          <option value="Inactive" {{ 'selected' if user.Status=='Inactive' }}>Inactive</option>
+        </select>
+      </div>
+      {% endif %}
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-lg me-1"></i>Lưu
+      </button>
+      <a href="{{ url_for('users') }}" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

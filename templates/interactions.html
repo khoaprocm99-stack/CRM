@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}Lịch sử tương tác{% endblock %}
+{% block content %}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h1><i class="bi bi-chat-dots me-2"></i>Lịch sử tương tác</h1>
+    <small class="text-muted">Tổng {{ paged.total }} tương tác</small>
+  </div>
+  {% if session.get('role') in ['admin','employee'] %}
+  <a href="{{ url_for('add_interaction') }}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i> Ghi nhận tương tác
+  </a>
+  {% endif %}
+</div>
+
+<!-- Tìm kiếm + lọc -->
+<div class="bg-white rounded-3 shadow-sm p-3 mb-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-5">
+      <label class="form-label small fw-semibold mb-1">🔍 Tìm kiếm</label>
+      <input type="text" name="q" class="form-control form-control-sm"
+             placeholder="Chủ đề, khách hàng, công ty..."
+             value="{{ q }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold mb-1">Loại tương tác</label>
+      <select name="type" class="form-select form-select-sm">
+        <option value="">Tất cả</option>
+        {% for t in ['Email','Call','Meeting','Demo','Chat'] %}
+        <option value="{{ t }}" {{ 'selected' if itype==t }}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 d-flex gap-2 align-items-end">
+      <button type="submit" class="btn btn-primary btn-sm flex-fill">
+        <i class="bi bi-search me-1"></i>Tìm
+      </button>
+      <a href="{{ url_for('interactions') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-x-lg"></i> Xóa lọc
+      </a>
+    </div>
+  </form>
+</div>
+
+<div class="table-card">
+  <table class="table table-hover align-middle">
+    <thead><tr>
+      <th>Loại</th><th>Khách hàng</th><th>Chủ đề</th>
+      <th>Ghi chú</th><th>Nhân viên</th><th>Thời gian</th><th></th>
+    </tr></thead>
+    <tbody>
+      {% for i in interactions %}
+      <tr>
+        <td>
+          {% set tc = {'Email':'primary','Call':'success','Meeting':'warning','Demo':'info','Chat':'secondary'} %}
+          <span class="badge bg-{{ tc.get(i.Type,'secondary') }}
+                {% if i.Type in ['Meeting','Demo'] %} text-dark{% endif %}">
+            <i class="bi bi-{{ 'envelope' if i.Type=='Email' else 'telephone' if i.Type=='Call'
+                              else 'camera-video' if i.Type=='Demo' else 'chat' }}"></i>
+            {{ i.Type }}
+          </span>
+        </td>
+        <td>
+          <a href="{{ url_for('customer_detail', cid=i.CustomerID) }}" class="text-decoration-none">
+            {{ i.customer }}
+          </a>
+          <div class="text-muted" style="font-size:.78rem">{{ i.Company }}</div>
+        </td>
+        <td class="fw-semibold">{{ i.Subject }}</td>
+        <td class="text-muted" style="font-size:.82rem;max-width:200px">
+          {{ i.Notes[:80] ~ '…' if i.Notes and i.Notes|length > 80 else i.Notes or '' }}
+        </td>
+        <td>{{ i.employee }}</td>
+        <td style="font-size:.82rem">
+          {{ i.InteractedAt.strftime('%d/%m/%Y %H:%M') if i.InteractedAt }}
+        </td>
+        <td>
+          {% if session.get('role') == 'admin' %}
+          <a href="{{ url_for('edit_interaction', iid=i.InteractionID) }}"
+             class="btn btn-sm btn-outline-secondary me-1"><i class="bi bi-pencil"></i></a>
+          <form action="{{ url_for('delete_interaction', iid=i.InteractionID) }}" method="post"
+                class="d-inline" onsubmit="return confirm('Xóa tương tác này?')">
+            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center text-muted py-4">
+        {{ 'Không tìm thấy kết quả' if q or itype else 'Chưa có tương tác nào' }}
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {{ render_pagination(paged, 'interactions', q=q, type=itype) }}
+</div>
+{% endblock %}

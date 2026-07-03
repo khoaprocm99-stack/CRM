@@ -1,0 +1,241 @@
+{% extends "edu/base_edu.html" %}
+{% block title %}{{ student.FullName }}{% endblock %}
+{% block content %}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h1><i class="bi bi-person-lines-fill me-2"></i>{{ student.FullName }}</h1>
+    <small class="text-muted">
+      {{ student.Phone }} · {{ student.Source }}
+      {% if student.staff_name %} · Phụ trách: {{ student.staff_name }}{% endif %}
+    </small>
+  </div>
+  <div>
+    {% if session.get('role') in ['admin','employee'] %}
+    <a href="{{ url_for('edu_edit_student', sid=student.StudentID) }}"
+       class="btn btn-outline-success me-2">
+      <i class="bi bi-pencil me-1"></i>Chỉnh sửa
+    </a>
+    {% endif %}
+    <a href="{{ url_for('edu_students') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Danh sách
+    </a>
+  </div>
+</div>
+
+<!-- Thông tin cơ bản -->
+<div class="row g-3 mb-4">
+  {% set sc = {'Prospect':'secondary','Enrolled':'info','Studying':'success','Graduated':'primary','Dropped':'danger'} %}
+  <div class="col-md-2">
+    <div class="bg-white rounded-3 p-3 shadow-sm text-center">
+      <div class="rounded-circle bg-success text-white d-flex align-items-center
+                  justify-content-center mx-auto mb-2"
+           style="width:56px;height:56px;font-size:1.5rem;font-weight:700">
+        {{ student.FullName[0] }}
+      </div>
+      <span class="badge bg-{{ sc.get(student.Status,'secondary') }}">{{ student.Status }}</span>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="bg-white rounded-3 p-3 shadow-sm">
+      <div class="text-muted small mb-1">Email</div>
+      <div style="font-size:.88rem">{{ student.Email or '—' }}</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="bg-white rounded-3 p-3 shadow-sm">
+      <div class="text-muted small mb-1">Điện thoại</div>
+      <div style="font-size:.88rem">{{ student.Phone or '—' }}</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="bg-white rounded-3 p-3 shadow-sm">
+      <div class="text-muted small mb-1">Ngày sinh</div>
+      <div style="font-size:.88rem">
+        {{ student.DOB.strftime('%d/%m/%Y') if student.DOB else '—' }}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="bg-white rounded-3 p-3 shadow-sm">
+      <div class="text-muted small mb-1">Giới tính</div>
+      <div style="font-size:.88rem">{{ student.Gender or '—' }}</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="bg-white rounded-3 p-3 shadow-sm">
+      <div class="text-muted small mb-1">Ngày tạo</div>
+      <div style="font-size:.88rem">
+        {{ student.CreatedAt.strftime('%d/%m/%Y') if student.CreatedAt else '—' }}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if student.Notes %}
+<div class="bg-white rounded-3 p-3 shadow-sm mb-3">
+  <small class="text-muted">📝 Ghi chú:</small>
+  <div>{{ student.Notes }}</div>
+</div>
+{% endif %}
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-3" id="studentTab">
+  <li class="nav-item">
+    <a class="nav-link active" data-bs-toggle="tab" href="#tab-enroll">
+      <i class="bi bi-journal-check me-1"></i>Đăng ký học ({{ enrolls|length }})
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-bs-toggle="tab" href="#tab-payment">
+      <i class="bi bi-cash-coin me-1"></i>Học phí ({{ payments|length }})
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-bs-toggle="tab" href="#tab-consult">
+      <i class="bi bi-chat-dots me-1"></i>Tư vấn ({{ consults|length }})
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-bs-toggle="tab" href="#tab-feedback">
+      <i class="bi bi-star me-1"></i>Phản hồi ({{ feedbacks|length }})
+    </a>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <!-- Đăng ký học -->
+  <div class="tab-pane fade show active" id="tab-enroll">
+    <div class="table-card">
+      <table class="table table-sm align-middle">
+        <thead><tr>
+          <th>Lớp học</th><th>Khóa học</th><th>Trạng thái</th>
+          <th class="text-end">Học phí</th><th class="text-end">Đã đóng</th>
+          <th class="text-end text-danger">Còn nợ</th>
+        </tr></thead>
+        <tbody>
+          {% set ec = {'Pending':'warning','Confirmed':'info','Studying':'success',
+                       'Completed':'primary','Dropped':'danger','Refunded':'secondary'} %}
+          {% for e in enrolls %}
+          <tr>
+            <td class="fw-semibold">{{ e.ClassName }}</td>
+            <td>{{ e.CourseName }}</td>
+            <td>
+              <span class="badge bg-{{ ec.get(e.Status,'secondary') }}
+                    {% if e.Status in ['Pending','Confirmed'] %} text-dark{% endif %}">
+                {{ e.Status }}
+              </span>
+            </td>
+            <td class="text-end">{{ "{:,.0f}".format(e.FinalFee or 0) }} ₫</td>
+            <td class="text-end text-success">{{ "{:,.0f}".format(e.paid or 0) }} ₫</td>
+            <td class="text-end {{ 'text-danger fw-bold' if e.remaining > 0 else '' }}">
+              {{ "{:,.0f}".format(e.remaining or 0) }} ₫
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="text-center text-muted">Chưa đăng ký lớp nào</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Học phí -->
+  <div class="tab-pane fade" id="tab-payment">
+    <div class="table-card">
+      <table class="table table-sm align-middle">
+        <thead><tr>
+          <th>Ngày</th><th>Lớp học</th><th>Số tiền</th>
+          <th>Hình thức</th><th>Ghi chú</th><th>Nhân viên</th>
+        </tr></thead>
+        <tbody>
+          {% for p in payments %}
+          <tr>
+            <td>{{ p.PaymentDate.strftime('%d/%m/%Y') if p.PaymentDate else '—' }}</td>
+            <td>{{ p.ClassName }}</td>
+            <td class="fw-bold text-success">{{ "{:,.0f}".format(p.Amount) }} ₫</td>
+            <td><span class="badge bg-secondary">{{ p.Method }}</span></td>
+            <td style="font-size:.82rem">{{ p.Note or '—' }}</td>
+            <td style="font-size:.82rem">{{ p.staff or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="text-center text-muted">Chưa có thanh toán</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tư vấn -->
+  <div class="tab-pane fade" id="tab-consult">
+    <div class="table-card">
+      <table class="table table-sm align-middle">
+        <thead><tr>
+          <th>Loại</th><th>Chủ đề</th><th>Kết quả</th>
+          <th>Bước tiếp</th><th>Nhân viên</th><th>Thời gian</th>
+        </tr></thead>
+        <tbody>
+          {% set rc = {'Đã đăng ký':'success','Quan tâm':'info','Cần suy nghĩ':'warning','Không quan tâm':'danger'} %}
+          {% for c in consults %}
+          <tr>
+            <td><span class="badge bg-secondary">{{ c.Type }}</span></td>
+            <td>{{ c.Subject }}</td>
+            <td>
+              <span class="badge bg-{{ rc.get(c.Result,'secondary') }}
+                    {% if c.Result in ['Quan tâm','Cần suy nghĩ'] %} text-dark{% endif %}">
+                {{ c.Result or '—' }}
+              </span>
+            </td>
+            <td style="font-size:.8rem">{{ c.NextAction or '—' }}</td>
+            <td style="font-size:.82rem">{{ c.staff }}</td>
+            <td style="font-size:.8rem">
+              {{ c.ConsultedAt.strftime('%d/%m/%Y %H:%M') if c.ConsultedAt }}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="text-center text-muted">Chưa có tư vấn</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Phản hồi -->
+  <div class="tab-pane fade" id="tab-feedback">
+    <div class="table-card">
+      <table class="table table-sm align-middle">
+        <thead><tr>
+          <th>Loại</th><th>Chủ đề</th><th>Ưu tiên</th><th>Trạng thái</th><th>Ngày tạo</th>
+        </tr></thead>
+        <tbody>
+          {% set fc = {'Open':'danger','Processing':'warning','Resolved':'success','Closed':'secondary'} %}
+          {% for f in feedbacks %}
+          <tr>
+            <td><span class="badge bg-info text-dark">{{ f.Type }}</span></td>
+            <td>{{ f.Subject }}</td>
+            <td>
+              {% set pc = {'Low':'secondary','Medium':'info','High':'warning','Critical':'danger'} %}
+              <span class="badge bg-{{ pc.get(f.Priority,'secondary') }}
+                    {% if f.Priority=='Medium' %} text-dark{% endif %}">
+                {{ f.Priority }}
+              </span>
+            </td>
+            <td>
+              <span class="badge bg-{{ fc.get(f.Status,'secondary') }}
+                    {% if f.Status=='Processing' %} text-dark{% endif %}">
+                {{ f.Status }}
+              </span>
+            </td>
+            <td style="font-size:.82rem">
+              {{ f.CreatedAt.strftime('%d/%m/%Y') if f.CreatedAt }}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted">Chưa có phản hồi</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% from "_pagination.html" import render_pagination %}
+{% block title %}Ticket hỗ trợ{% endblock %}
+{% block content %}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h1><i class="bi bi-ticket-detailed me-2"></i>Ticket hỗ trợ</h1>
+    <small class="text-muted">Tổng {{ paged.total }} ticket</small>
+  </div>
+  {% if session.get('role') in ['admin','employee'] %}
+  <a href="{{ url_for('add_ticket') }}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i> Tạo ticket
+  </a>
+  {% endif %}
+</div>
+
+<!-- Tìm kiếm + lọc -->
+<div class="bg-white rounded-3 shadow-sm p-3 mb-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label small fw-semibold mb-1">🔍 Tìm kiếm</label>
+      <input type="text" name="q" class="form-control form-control-sm"
+             placeholder="Chủ đề, khách hàng, công ty..."
+             value="{{ q }}">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small fw-semibold mb-1">Trạng thái</label>
+      <select name="status" class="form-select form-select-sm">
+        <option value="">Tất cả</option>
+        {% for s in statuses %}
+        <option value="{{ s }}" {{ 'selected' if current_status==s }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small fw-semibold mb-1">Ưu tiên</label>
+      <select name="priority" class="form-select form-select-sm">
+        <option value="">Tất cả</option>
+        {% for p in priorities %}
+        <option value="{{ p }}" {{ 'selected' if current_priority==p }}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 d-flex gap-2 align-items-end">
+      <button type="submit" class="btn btn-primary btn-sm flex-fill">
+        <i class="bi bi-search me-1"></i>Tìm
+      </button>
+      <a href="{{ url_for('tickets') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-x-lg"></i> Xóa lọc
+      </a>
+    </div>
+  </form>
+</div>
+
+<div class="table-card">
+  <table class="table table-hover align-middle">
+    <thead><tr>
+      <th>#</th><th>Chủ đề</th><th>Khách hàng</th>
+      <th>Ưu tiên</th><th>Trạng thái</th>
+      <th>Phụ trách</th><th>Ngày tạo</th><th></th>
+    </tr></thead>
+    <tbody>
+      {% set pc = {'Low':'secondary','Medium':'info','High':'warning','Critical':'danger'} %}
+      {% set sc = {'Open':'danger','In Progress':'warning','Resolved':'success','Closed':'secondary'} %}
+      {% for t in tickets %}
+      <tr>
+        <td class="text-muted" style="font-size:.8rem">{{ t.TicketID }}</td>
+        <td class="fw-semibold">{{ t.Subject }}</td>
+        <td>
+          <a href="{{ url_for('customer_detail', cid=t.CustomerID) }}" class="text-decoration-none">
+            {{ t.customer }}
+          </a>
+          <div class="text-muted" style="font-size:.78rem">{{ t.Company }}</div>
+        </td>
+        <td>
+          <span class="badge bg-{{ pc.get(t.Priority,'secondary') }}
+                {% if t.Priority=='Medium' %} text-dark{% endif %}">
+            {{ t.Priority }}
+          </span>
+        </td>
+        <td>
+          <span class="badge bg-{{ sc.get(t.Status,'secondary') }}
+                {% if t.Status=='In Progress' %} text-dark{% endif %}">
+            {{ t.Status }}
+          </span>
+        </td>
+        <td>{{ t.employee or '—' }}</td>
+        <td style="font-size:.82rem">
+          {{ t.CreatedAt.strftime('%d/%m/%Y') if t.CreatedAt }}
+        </td>
+        <td>
+          {% if session.get('role') == 'admin' %}
+            {% if t.Status in ('Open','In Progress') %}
+            <form action="{{ url_for('resolve_ticket', tid=t.TicketID) }}" method="post" class="d-inline">
+              <button class="btn btn-sm btn-success me-1" title="Giải quyết">
+                <i class="bi bi-check-lg"></i>
+              </button>
+            </form>
+            {% endif %}
+            <a href="{{ url_for('edit_ticket', tid=t.TicketID) }}"
+               class="btn btn-sm btn-outline-secondary me-1"><i class="bi bi-pencil"></i></a>
+            <form action="{{ url_for('delete_ticket', tid=t.TicketID) }}" method="post"
+                  class="d-inline" onsubmit="return confirm('Xóa ticket này?')">
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+          {% elif session.get('role') == 'employee' %}
+            {% if t.Status in ('Open','In Progress') %}
+            <form action="{{ url_for('resolve_ticket', tid=t.TicketID) }}" method="post" class="d-inline">
+              <button class="btn btn-sm btn-success" title="Giải quyết">
+                <i class="bi bi-check-lg"></i>
+              </button>
+            </form>
+            {% endif %}
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="text-center text-muted py-4">
+        {{ 'Không tìm thấy kết quả' if q or current_status or current_priority else 'Chưa có ticket nào' }}
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {{ render_pagination(paged, 'tickets', q=q, status=current_status, priority=current_priority) }}
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Chỉnh sửa' if ticket else 'Tạo' }} ticket{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1><i class="bi bi-ticket-detailed me-2"></i>
+    {{ 'Chỉnh sửa ticket' if ticket else 'Tạo ticket hỗ trợ' }}
+  </h1>
+</div>
+
+<div class="bg-white rounded-3 shadow-sm p-4" style="max-width:600px">
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Khách hàng *</label>
+        <select name="customer_id" class="form-select" required>
+          {% for c in customers %}
+          <option value="{{ c.CustomerID }}"
+            {{ 'selected' if ticket and ticket.CustomerID==c.CustomerID }}>
+            {{ c.FullName }} ({{ c.Company }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Nhân viên hỗ trợ</label>
+        <select name="employee_id" class="form-select">
+          <option value="">— Chưa phân công —</option>
+          {% for e in employees %}
+          <option value="{{ e.EmployeeID }}"
+            {{ 'selected' if ticket and ticket.EmployeeID==e.EmployeeID }}>
+            {{ e.FullName }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold">Chủ đề *</label>
+        <input type="text" name="subject" class="form-control"
+               value="{{ ticket.Subject if ticket else '' }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Mức độ ưu tiên</label>
+        <select name="priority" class="form-select">
+          {% for p in ['Low','Medium','High','Critical'] %}
+          <option value="{{ p }}" {{ 'selected' if ticket and ticket.Priority==p }}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if ticket %}
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Trạng thái</label>
+        <select name="status" class="form-select">
+          {% for s in ['Open','In Progress','Resolved','Closed'] %}
+          <option value="{{ s }}" {{ 'selected' if ticket.Status==s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <div class="col-12">
+        <label class="form-label fw-semibold">Mô tả chi tiết</label>
+        <textarea name="description" class="form-control" rows="4">
+          {{- ticket.Description if ticket else '' -}}
+        </textarea>
+      </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-lg me-1"></i>{{ 'Cập nhật' if ticket else 'Tạo ticket' }}
+      </button>
+      <a href="{{ url_for('tickets') }}" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

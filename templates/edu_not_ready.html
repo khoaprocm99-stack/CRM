@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Chưa cài module Giáo dục{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="bi bi-mortarboard me-2"></i>Module CRM Giáo dục</h1>
+</div>
+<div class="bg-white rounded-3 shadow-sm p-5 text-center" style="max-width:600px;margin:0 auto">
+  <i class="bi bi-mortarboard" style="font-size:4rem;color:#27ae60;opacity:.5"></i>
+  <h4 class="mt-3 fw-bold">Database chưa được cài đặt</h4>
+  <p class="text-muted">Module CRM Giáo dục cần database <code>crm_edu</code> riêng.</p>
+  <div class="alert alert-info text-start mt-3">
+    <strong>Cách cài đặt:</strong><br>
+    Chạy lệnh này trong CMD:
+    <code class="d-block mt-2 p-2 bg-dark text-white rounded" style="font-size:.82rem">
+      "d:\xampp\mysql\bin\mysql.exe" -u root --default-character-set=utf8mb4 &lt; "đường_dẫn\sql\crm_education.sql"
+    </code>
+  </div>
+  <a href="{{ url_for('index') }}" class="btn btn-outline-secondary mt-2">
+    <i class="bi bi-arrow-left me-1"></i> Quay lại CRM Tổng quát
+  </a>
+</div>
+{% endblock %}

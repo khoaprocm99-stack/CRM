@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng ký — CRM System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css">
+  <style>
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a5276 0%, #2e86c1 50%, #1a8a6e 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .register-card {
+      background: white;
+      border-radius: 16px;
+      padding: 36px 40px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .logo-area { text-align: center; margin-bottom: 24px; }
+    .logo-area img { height: 60px; margin-bottom: 10px; }
+    .logo-area h1 { font-size: 1.3rem; font-weight: 700; color: #1a5276; margin: 0; }
+    .logo-area small { color: #666; font-size: .78rem; }
+    .form-label { font-weight: 600; color: #333; }
+    .form-control:focus {
+      border-color: #2e86c1;
+      box-shadow: 0 0 0 3px rgba(46,134,193,.15);
+    }
+    .btn-register {
+      background: linear-gradient(135deg, #1a5276, #2e86c1);
+      border: none; color: white; font-weight: 600;
+      padding: 10px; border-radius: 8px; transition: .2s;
+    }
+    .btn-register:hover { opacity: .9; color: white; }
+    .notice-box {
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: .82rem;
+      color: #795548;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+<div class="register-card">
+  <div class="logo-area">
+    <img src="{{ url_for('static', filename='logo_nlu.png') }}"
+         alt="NLU" onerror="this.style.display='none'">
+    <h1><i class="bi bi-person-plus-fill me-2" style="color:#2e86c1"></i>Đăng ký tài khoản</h1>
+    <small>CRM System — NLU Nhóm 07 · 2024</small>
+  </div>
+
+  <!-- Thông báo -->
+  <div class="notice-box">
+    <i class="bi bi-info-circle me-1"></i>
+    Tài khoản mới sẽ ở trạng thái <strong>chờ duyệt</strong>.
+    Admin sẽ kích hoạt sau khi xem xét.
+  </div>
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'success' if cat=='success' else 'warning' if cat=='warning' else 'danger' }} py-2 mb-3" style="font-size:.88rem">
+        {{ msg }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="post">
+    <div class="mb-3">
+      <label class="form-label"><i class="bi bi-person me-1"></i>Họ và tên *</label>
+      <input type="text" name="fullname" class="form-control"
+             placeholder="Nguyễn Văn A" required autofocus>
+    </div>
+    <div class="mb-3">
+      <label class="form-label"><i class="bi bi-at me-1"></i>Tên đăng nhập *</label>
+      <input type="text" name="username" class="form-control"
+             placeholder="Ít nhất 4 ký tự, không dấu" required minlength="4">
+      <div class="form-text">Không dùng khoảng trắng hoặc ký tự đặc biệt</div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label"><i class="bi bi-lock me-1"></i>Mật khẩu *</label>
+      <div class="input-group">
+        <input type="password" name="password" id="pw1"
+               class="form-control" placeholder="Ít nhất 6 ký tự" required minlength="6">
+        <button class="btn btn-outline-secondary" type="button" onclick="togglePw('pw1','ic1')">
+          <i class="bi bi-eye" id="ic1"></i>
+        </button>
+      </div>
+    </div>
+    <div class="mb-4">
+      <label class="form-label"><i class="bi bi-lock-fill me-1"></i>Xác nhận mật khẩu *</label>
+      <div class="input-group">
+        <input type="password" name="confirm" id="pw2"
+               class="form-control" placeholder="Nhập lại mật khẩu" required>
+        <button class="btn btn-outline-secondary" type="button" onclick="togglePw('pw2','ic2')">
+          <i class="bi bi-eye" id="ic2"></i>
+        </button>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-register w-100 mb-3">
+      <i class="bi bi-send me-2"></i>Gửi yêu cầu đăng ký
+    </button>
+
+    <div class="text-center" style="font-size:.88rem">
+      Đã có tài khoản?
+      <a href="{{ url_for('login') }}" class="fw-semibold text-decoration-none">
+        Đăng nhập ngay
+      </a>
+    </div>
+  </form>
+</div>
+
+<script>
+function togglePw(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon  = document.getElementById(iconId);
+  input.type  = input.type === 'password' ? 'text' : 'password';
+  icon.className = input.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+}
+</script>
+</body>
+</html>
